@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research & Technology — Cerebro | How we test and run strategies</title>
+<meta name="description" content="Cerebro's methodology: one engine for testing and live, no look-ahead, realistic costs, out-of-sample judgement, reshuffled histories, frozen strategy versions, cross-checked data and broker reconciliation.">
+<link rel="canonical" href="https://tradecerebro.com/technology.html">
+<link rel="icon" href="assets/logo-neon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#05070d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cerebro">
+<meta property="og:url" content="https://tradecerebro.com/technology.html">
+<meta property="og:title" content="Research & Technology — Cerebro | How we test and run strategies">
+<meta property="og:description" content="Cerebro's methodology: one engine for testing and live, no look-ahead, realistic costs, out-of-sample judgement, reshuffled histories, frozen strategy versions, cross-checked data and broker reconciliation.">
+<meta property="og:image" content="https://tradecerebro.com/og-image.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Cerebro home"><img src="assets/logo-neon.svg" alt="" width="32" height="31"><span>Cerebro<small>Trading Intelligence</small></span></a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav id="nav" class="nav" aria-label="Main"><a href="product.html">Product</a><a href="how-it-works.html">How It Works</a><a href="technology.html" aria-current="page">Research &amp; Technology</a><a href="pricing.html">Pricing</a><a href="https://app.tradecerebro.com">Sign In</a><a class="btn btn-primary" href="index.html#beta">Get Early Access</a></nav>
+  </div>
+</header>
+<main id="main">
+<div class="wrap">
+  <section class="page-head reveal">
+    <p class="eyebrow">Research &amp; technology</p>
+    <h1>Cerebro doesn't look for reasons to approve a strategy. <span class="grad">It looks for reasons to reject it.</span></h1>
+  </section>
+  <section class="reveal prose">
+    <h2>One engine, no look-ahead</h2><p>The code that decides in a backtest is the same code that decides in live trading. Every building block is tested automatically to prove it never uses a price from the future: its answer on any bar is the same whether or not later bars exist.</p>
+    <h2>Realistic costs</h2><p>Every result includes the spread (and the wider spreads late in the UK evening) and allows for slippage on stops. An edge that only exists before costs is caught early.</p>
+    <h2>Judged on unseen data</h2><p>Strategies are built on one period and judged on years they never saw. The rules that run the portfolio are being set the same way, by simulating thousands of random portfolios that never see the future.</p>
+    <h2>Normal ranges</h2><p>Reshuffling a strategy's trades thousands of times shows the spread of good and bad runs it should produce. Live results are placed in that range, so a genuine problem can be told apart from ordinary bad luck.</p>
+    <h2>Every number in context</h2><p>Results are always shown with profit factor and win rate beside the total - never a single flattering figure.</p>
+    <h2>Frozen strategy versions</h2><p>Each strategy version is fingerprinted. It can't be changed after testing; any change becomes a new version with its own results.</p>
+    <h2>Price data you can trust</h2><p>Five years of minute prices for seven major currency pairs, compared month by month between two independent sources. Months that disagree or have gaps are fixed or set aside before any test runs on them.</p>
+    <h2>The market layer</h2><p>A filter above the strategies that checks conditions before each new entry, by strategy type: trend, momentum, breakout and pattern strategies trade with the 20-day trend and before 60% of the day's usual range is used; pullbacks must not chase a move already over one average range; mean-reversion strategies are not filtered. Versions are frozen, and a copy without the filter always runs alongside it.</p>
+    <h2>Execution you can audit</h2><p>Every intention, order, broker reply and position change is written to a journal before and after it happens. Positions are reconciled with the broker each round, so a restart never loses or invents a trade. A watchdog alerts you if anything stops.</p>
+    <div class="notice">Backtested, simulated and paper-trading results are hypothetical. They help judge a strategy but do not guarantee future performance.</div>
+  </section>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div><a class="brand" href="index.html"><img src="assets/logo-neon.svg" alt="" width="32" height="31"><span>Cerebro<small>Trading Intelligence</small></span></a>
+        <p style="margin-top:14px;font-size:14px;max-width:320px">Strategy research, testing, automated execution and portfolio management for systematic traders. In private beta.</p></div>
+      <div><h4>Platform</h4><a href="product.html">Product</a><a href="how-it-works.html">How It Works</a><a href="technology.html">Research &amp; Technology</a><a href="pricing.html">Pricing</a></div>
+      <div><h4>Company</h4><a href="index.html#beta">Private beta</a><a href="contact.html">Contact</a><a href="https://app.tradecerebro.com">Sign In</a><a href="intro.html">Watch the intro</a></div>
+      <div><h4>Legal</h4><a href="risk.html">Risk Disclosure</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a></div>
+    </div>
+    <p class="risk"><b>Risk warning:</b> Spread bets and CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. You should consider whether you understand how they work and whether you can afford to take the high risk of losing your money. Backtested, simulated and paper-trading results are hypothetical and do not guarantee future performance. Cerebro is software that carries out rules you configure; it does not provide personalised investment advice or manage money on your behalf. <a href="risk.html">Read the full risk disclosure</a>.</p>
+    <p style="margin-top:14px;font-size:13px">© 2026 Cerebro · tradecerebro.com</p>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

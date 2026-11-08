@@ -1,0 +1,20 @@
+<!-- title: Research & Technology — Cerebro | How we test and run strategies
+description: Cerebro's methodology: one engine for testing and live, no look-ahead, realistic costs, out-of-sample judgement, reshuffled histories, frozen strategy versions, cross-checked data and broker reconciliation. -->
+<div class="wrap">
+  <section class="page-head reveal">
+    <p class="eyebrow">Research &amp; technology</p>
+    <h1>Cerebro doesn't look for reasons to approve a strategy. <span class="grad">It looks for reasons to reject it.</span></h1>
+  </section>
+  <section class="reveal prose">
+    <h2>One engine, no look-ahead</h2><p>The code that decides in a backtest is the same code that decides in live trading. Every building block is tested automatically to prove it never uses a price from the future: its answer on any bar is the same whether or not later bars exist.</p>
+    <h2>Realistic costs</h2><p>Every result includes the spread (and the wider spreads late in the UK evening) and allows for slippage on stops. An edge that only exists before costs is caught early.</p>
+    <h2>Judged on unseen data</h2><p>Strategies are built on one period and judged on years they never saw. The rules that run the portfolio are being set the same way, by simulating thousands of random portfolios that never see the future.</p>
+    <h2>Normal ranges</h2><p>Reshuffling a strategy's trades thousands of times shows the spread of good and bad runs it should produce. Live results are placed in that range, so a genuine problem can be told apart from ordinary bad luck.</p>
+    <h2>Every number in context</h2><p>Results are always shown with profit factor and win rate beside the total - never a single flattering figure.</p>
+    <h2>Frozen strategy versions</h2><p>Each strategy version is fingerprinted. It can't be changed after testing; any change becomes a new version with its own results.</p>
+    <h2>Price data you can trust</h2><p>Five years of minute prices for seven major currency pairs, compared month by month between two independent sources. Months that disagree or have gaps are fixed or set aside before any test runs on them.</p>
+    <h2>The market layer</h2><p>A filter above the strategies that checks conditions before each new entry, by strategy type: trend, momentum, breakout and pattern strategies trade with the 20-day trend and before 60% of the day's usual range is used; pullbacks must not chase a move already over one average range; mean-reversion strategies are not filtered. Versions are frozen, and a copy without the filter always runs alongside it.</p>
+    <h2>Execution you can audit</h2><p>Every intention, order, broker reply and position change is written to a journal before and after it happens. Positions are reconciled with the broker each round, so a restart never loses or invents a trade. A watchdog alerts you if anything stops.</p>
+    <div class="notice">Backtested, simulated and paper-trading results are hypothetical. They help judge a strategy but do not guarantee future performance.</div>
+  </section>
+</div>

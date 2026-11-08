@@ -1,0 +1,270 @@
+<!-- title: Cerebro — Trading Intelligence | Build, test and automate systematic trading strategies
+description: Cerebro brings strategy development, rigorous backtesting, automated execution and portfolio management together in one platform for systematic traders. Now in private beta. -->
+<section class="hero" aria-labelledby="hero-h">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">AI strategy development &amp; trading intelligence</p>
+      <h1 id="hero-h"><span>Build smarter strategies.</span><span>Automate your trading.</span><span class="grad">Master your portfolio.</span></h1>
+      <p class="lead">Strategy development, professional-grade backtesting and portfolio management in one trading platform. From your first trading idea to an automated portfolio, Cerebro brings together the tools, analysis and risk controls you need to trade systematically.</p>
+      <div class="btns"><a class="btn btn-primary" href="how-it-works.html">See How It Works</a><a class="btn btn-ghost" href="#beta">Join the Private Beta</a></div>
+      <p class="note">Private beta · Connects to IG spread-betting accounts · Paper and demo trading first</p>
+    </div>
+    <figure>
+      <div class="shot"><div class="bar"><i></i><i></i><i></i><span>app.tradecerebro.com</span></div>
+        <img src="assets/app-overview.jpg" width="1280" height="700" alt="The Cerebro Mark 2 dashboard: closed trades, win rate, profit factor and running total for the Sandbox with and without the market layer, shown with illustrative data" fetchpriority="high"></div>
+      <figcaption class="caption">The Cerebro dashboard, shown with illustrative data - not real trading results.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section aria-labelledby="cred-h" class="reveal">
+  <div class="wrap">
+    <p class="eyebrow">Credibility</p>
+    <h2 id="cred-h">Built on research. Designed for real markets.</h2>
+    <p class="lead">Cerebro is the product of extensive strategy research, historical backtesting and live-market experimentation. We believe strategies should be challenged, not tuned until their history looks attractive - so rigorous validation, transparent analytics and risk management sit at the centre of the platform.</p>
+    <div class="cred">
+      <div><b>120+ published strategies</b><p>Classic trading methods researched, rebuilt as exact rules and tested - including the ones that failed.</p></div>
+      <div><b>4,600+ demo-account trades</b><p>Months of automated trading on a live IG demo account taught us where backtests and real fills differ.</p></div>
+      <div><b>5 years of minute data</b><p>Seven major currency pairs, minute by minute, cross-checked between two independent sources before any test runs.</p></div>
+      <div><b>Every version frozen</b><p>Each strategy version is fingerprinted, so what was tested is exactly what trades.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="capabilities" aria-labelledby="caps-h">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">Core capabilities</p>
+      <h2 id="caps-h">Everything you need to build and manage a systematic trading portfolio.</h2>
+    </div>
+    <div class="caps">
+
+      <article class="cap reveal">
+        <div class="cap-text">
+          <div class="kicker">AI Strategy Builder <span class="badge b-soon">Coming soon</span></div>
+          <h3>Your ideas, engineered into trading strategies.</h3>
+          <p>Describe an approach - or start from a published method - and Cerebro's AI turns it into structured, testable rules. Explore variations and refine the logic without writing the code yourself.</p>
+          <ul><li class="soon">Plain-English ideas turned into exact entry, exit and risk rules</li><li class="soon">Every assumption labelled, so you know what was interpreted</li><li>Built on a library of tested building blocks: indicators, candle and chart patterns, sessions, trend filters</li></ul>
+        </div>
+        <div class="ui" role="img" aria-label="Illustration of the strategy builder turning an idea into rules">
+          <div class="ui-head"><b>Strategy Builder</b><span class="badge b-illus">Interface preview</span></div>
+          <div class="ui-code"><span class="k">Idea</span>  "Buy pullbacks in a strong hourly trend during London"
+
+<span class="k">entry</span>  <span class="v">TREND_FILTER</span>  EMA 50 above EMA 200
+       <span class="v">PULLBACK</span>      close within 0.5 ATR of EMA 20
+       <span class="v">SESSION</span>       07:00-11:00 UTC
+<span class="k">stop</span>   1.5 x ATR(14)      <span class="k">target</span>  2 x risk
+<span class="k">notes</span>  "strong trend" read as EMA 50 &gt; 200 - labelled</div>
+        </div>
+      </article>
+
+      <article class="cap reveal">
+        <div class="cap-text">
+          <div class="kicker">Advanced Backtesting <span class="badge b-beta">In beta</span></div>
+          <h3>Don't just backtest. Challenge everything.</h3>
+          <p>Test strategies on years of historical prices with realistic trading costs, then look past headline returns: how often it wins, how deep it falls, and what a normal good or bad run looks like.</p>
+          <ul><li>Same engine for backtests and live trading - no look-ahead</li><li>Spreads, late-evening spreads and stop slippage included</li><li>Profit factor, win rate, average win and loss, worst drawdown</li><li>Thousands of reshuffled trade histories to set each strategy's normal range</li><li class="soon">Parameter-sensitivity and robustness reports - coming soon</li></ul>
+        </div>
+        <div class="ui" role="img" aria-label="Illustration of a strategy's normal range from reshuffled trade histories">
+          <div class="ui-head"><b>Normal range · reshuffled histories</b><span class="badge b-illus">Illustrative data</span></div>
+          <div class="dist" aria-hidden="true"><i style="height:8%"></i><i style="height:14%"></i><i style="height:24%"></i><i style="height:38%"></i><i style="height:55%"></i><i style="height:72%"></i><i style="height:88%"></i><i class="mark" style="height:100%"></i><i style="height:92%"></i><i style="height:76%"></i><i style="height:58%"></i><i style="height:40%"></i><i style="height:26%"></i><i style="height:15%"></i><i style="height:8%"></i></div>
+          <div class="ui-row"><span>Live result vs its normal range</span><span><span class="chip ok">Inside range</span></span></div>
+          <div class="ui-row"><span>Worst 1 in 10 drawdown</span><span>-9.4 R</span></div>
+          <div class="ui-row"><span>Profit factor · win rate</span><span>1.21 · 41%</span></div>
+        </div>
+      </article>
+
+      <article class="cap reveal">
+        <div class="cap-text">
+          <div class="kicker">Automated Trading <span class="badge b-beta">In beta</span></div>
+          <h3>Your rules. Executed automatically.</h3>
+          <p>Cerebro runs the complete trade lifecycle for the strategies you choose to run: entries, position sizing to your risk, stops and targets from the first second, and ongoing trade management.</p>
+          <ul><li>Stop losses and profit targets on every order</li><li>Profit locks (move to breakeven and beyond), trailing stops and time limits</li><li>Paper trading and IG demo accounts today</li><li class="soon">Live accounts and a choice of fully automated, semi-automated or manual modes - coming soon</li></ul>
+        </div>
+        <div class="ui" role="img" aria-label="Illustration of trade-management rules on an open trade">
+          <div class="ui-head"><b>Open trade · GBP/USD buy</b><span class="badge b-illus">Illustrative data</span></div>
+          <div class="ui-row"><span>Risk</span><span>£50 (0.5% of account)</span></div>
+          <div class="ui-row"><span>Profit lock at +0.5 R</span><span><span class="chip ok">Stop moved to entry</span></span></div>
+          <div class="ui-row"><span>Profit lock at +1 R</span><span><span class="chip">Waiting</span></span></div>
+          <div class="ui-row"><span>Trailing stop</span><span>15 pips, after +20 pips</span></div>
+          <div class="ui-row"><span>Time limit</span><span>480 bars</span></div>
+        </div>
+      </article>
+
+      <article class="cap reveal">
+        <div class="cap-text">
+          <div class="kicker">Portfolio Management <span class="badge b-beta">In beta</span></div>
+          <h3>The right strategies for the conditions in front of you.</h3>
+          <p>Managing strategies one by one is only part of systematic trading. Cerebro brings together strategy health, market conditions, correlation and currency exposure, so your decisions about what to run are better informed.</p>
+          <ul><li>Each strategy checked against its own expected range</li><li>Correlation and currency-concentration checks, so ten strategies aren't secretly one bet</li><li>Promotion and demotion rules between tiers - you decide, or approve each move</li></ul>
+        </div>
+        <figure>
+          <div class="shot"><img src="assets/app-strategies.jpg" width="1248" height="254" loading="lazy" alt="Per-strategy table in the Cerebro dashboard comparing trades, win rate, profit factor and R with and without the market layer, with illustrative data"></div>
+          <figcaption class="caption">Strategy-by-strategy view in the dashboard - illustrative data.</figcaption>
+        </figure>
+      </article>
+
+      <article class="cap reveal">
+        <div class="cap-text">
+          <div class="kicker">Performance Intelligence <span class="badge b-beta">In beta</span></div>
+          <h3>Know what's working - and what's changing.</h3>
+          <p>Every strategy is measured the professional way. Results always come with profit factor and win rate beside them, never a single flattering number - and live results are compared with what the testing said to expect.</p>
+          <ul><li>Profit factor, win rate, average R, running total</li><li>Market filter on and off side by side, with every signal it held back</li><li class="soon">Drawdown, exposure and live-versus-expected charts in the dashboard - coming soon</li></ul>
+        </div>
+        <figure>
+          <div class="shot"><img src="assets/app-overview.jpg" width="1280" height="700" loading="lazy" alt="Cerebro dashboard headline numbers and running-total chart, with illustrative data"></div>
+          <figcaption class="caption">Headline numbers and running total - illustrative data.</figcaption>
+        </figure>
+      </article>
+
+      <article class="cap reveal">
+        <div class="cap-text">
+          <div class="kicker">Risk Management <span class="badge b-beta">In beta</span></div>
+          <h3>Control your risk. Define your boundaries.</h3>
+          <p>Set risk per trade, position limits and daily loss thresholds, and every order passes through them before it reaches your broker. Pause a strategy, a market or everything at once.</p>
+          <ul><li>Risk per trade sized automatically</li><li>Maximum open positions and daily loss limit</li><li>Pause and resume at any time; every decision written to a journal</li><li>Watchdog alerts if anything stops</li></ul>
+        </div>
+        <div class="ui" role="img" aria-label="Illustration of risk limits and their current use">
+          <div class="ui-head"><b>Your limits</b><span class="badge b-illus">Illustrative data</span></div>
+          <div class="ui-row"><span>Risk per trade</span><span>£50</span></div>
+          <div style="padding:9px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;color:var(--body)"><span>Open positions</span><span style="color:var(--ink)">3 of 6</span></div><div class="meter"><i style="width:50%"></i></div></div>
+          <div style="padding:9px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;color:var(--body)"><span>Daily loss used</span><span style="color:var(--ink)">£40 of £150</span></div><div class="meter"><i style="width:27%"></i></div></div>
+          <div class="ui-row"><span>Trading</span><span><span class="chip ok">Active</span> <span class="chip">Pause all</span></span></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section id="lifecycle" aria-labelledby="life-h">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">Strategy lifecycle</p>
+      <h2 id="life-h">From first idea to live portfolio. One connected workflow.</h2>
+      <p class="lead">A trading strategy doesn't stop evolving when it goes live. Cerebro gives every strategy a structured path - develop, validate, deploy and keep evaluating - and it has to earn each step.</p>
+    </div>
+    <div class="life reveal">
+      <div class="stages" role="tablist" aria-label="Lifecycle stages">
+        <button class="stage" role="tab" id="t-lab" aria-controls="p-lab" aria-selected="true"><span class="num">01</span><span class="name">Lab</span></button>
+        <button class="stage" role="tab" id="t-sandbox" aria-controls="p-sandbox" aria-selected="false" tabindex="-1"><span class="num">02</span><span class="name">Sandbox</span></button>
+        <button class="stage" role="tab" id="t-bench" aria-controls="p-bench" aria-selected="false" tabindex="-1"><span class="num">03</span><span class="name">Bench</span></button>
+        <button class="stage" role="tab" id="t-live" aria-controls="p-live" aria-selected="false" tabindex="-1"><span class="num">04</span><span class="name">Live</span></button>
+        <button class="stage" role="tab" id="t-portfolio" aria-controls="p-portfolio" aria-selected="false" tabindex="-1"><span class="num">05</span><span class="name">Portfolio</span></button>
+      </div>
+      <div class="stage-panel" role="tabpanel" id="p-lab" aria-labelledby="t-lab">
+        <div><span class="badge b-soon">Coming soon</span><h3>Lab</h3><p>Discover, build and backtest strategies. Ideas become exact rules, are tested with costs on years of data, and are judged on periods they were never built on. Most don't make it - that's the point.</p></div>
+        <div><div class="tile"><div class="tile-top"><b>Example breakout v1</b><span class="chip warn">Testing</span></div><div class="tile-meta">Breakout · 1h · 4 pairs</div><div class="tile-stats"><div><b>412</b>trades</div><div><b>1.18</b>PF</div><div><b>39%</b>win</div><div><b>-12 R</b>worst DD</div></div></div><p class="caption">Illustrative strategy tile.</p></div>
+      </div>
+      <div class="stage-panel" role="tabpanel" id="p-sandbox" aria-labelledby="t-sandbox" hidden>
+        <div><span class="badge b-beta">In beta</span><h3>Sandbox</h3><p>Forward-test against live market prices without risking real capital. Paper trades follow your own risk settings, and a copy without the market filter runs alongside, so you see exactly what the filter changes.</p></div>
+        <div><div class="tile"><div class="tile-top"><b>Example momentum v2</b><span class="chip ok">Paper trading</span></div><div class="tile-meta">Momentum · 1h · GBP/USD, EUR/USD, USD/JPY</div><div class="tile-stats"><div><b>23</b>trades</div><div><b>1.12</b>PF</div><div><b>38%</b>win</div><div><b>+1.8 R</b>total</div></div></div><p class="caption">Illustrative strategy tile.</p></div>
+      </div>
+      <div class="stage-panel" role="tabpanel" id="p-bench" aria-labelledby="t-bench" hidden>
+        <div><span class="badge b-beta">In beta</span><h3>Bench</h3><p>Promising strategies trade on a broker demo account with real fills. Cerebro compares their results with what testing said to expect, and shows whether they are ready to deploy.</p></div>
+        <div><div class="tile"><div class="tile-top"><b>Example pullback v1</b><span class="chip ok">Inside normal range</span></div><div class="tile-meta">Pullback · 1h · IG demo account</div><div class="tile-stats"><div><b>31</b>trades</div><div><b>1.24</b>PF</div><div><b>42%</b>win</div><div><b>58th</b>percentile</div></div></div><p class="caption">Illustrative strategy tile.</p></div>
+      </div>
+      <div class="stage-panel" role="tabpanel" id="p-live" aria-labelledby="t-live" hidden>
+        <div><span class="badge b-soon">Coming soon</span><h3>Live</h3><p>Deploy selected strategies to your own connected trading account, under the execution and risk rules you choose. You decide what goes live - Cerebro carries out your rules.</p></div>
+        <div><div class="tile"><div class="tile-top"><b>Example momentum v2</b><span class="chip">Awaiting your approval</span></div><div class="tile-meta">Passed Bench · 30 demo trades · risk £50 a trade</div><div class="tile-stats"><div><b>£50</b>risk</div><div><b>6</b>max open</div><div><b>£150</b>daily limit</div><div><b>On</b>alerts</div></div></div><p class="caption">Illustrative strategy tile.</p></div>
+      </div>
+      <div class="stage-panel" role="tabpanel" id="p-portfolio" aria-labelledby="t-portfolio" hidden>
+        <div><span class="badge b-beta">In beta</span><h3>Portfolio</h3><p>See the whole portfolio at once: strategy health, market conditions, correlation and currency exposure. Strategies that drift outside their normal range are flagged to step down; stronger ones are put forward to step up.</p></div>
+        <div class="ui"><div class="ui-head"><b>Portfolio checks</b><span class="badge b-illus">Illustrative data</span></div><div class="ui-row"><span>Strategies outside normal range</span><span><span class="chip warn">1 - suggest Bench</span></span></div><div class="ui-row"><span>Highest correlation between two strategies</span><span>0.41</span></div><div class="ui-row"><span>Most-used currency</span><span>USD in 3 of 6</span></div><div class="ui-row"><span>Promotion candidates</span><span>1</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="markets" aria-labelledby="mkt-h">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">Market intelligence</p>
+      <h2 id="mkt-h">Markets change. Your trading approach should recognise it.</h2>
+      <p class="lead">Trending, ranging, volatile and quiet markets suit different strategies. Cerebro's market layer sits above your strategies and checks conditions before each new entry - by strategy type - and records every trade it holds back.</p>
+    </div>
+    <div class="mkt reveal">
+      <div class="ui">
+        <div class="ui-head"><b>Market layer · new-entry checks</b><span class="badge b-beta">In beta</span></div>
+        <div class="scroll-x"><table class="t"><thead><tr><th>Pair</th><th>20-day trend</th><th>Day's range used</th><th>24h move</th><th>Trend strategies</th></tr></thead>
+          <tbody><tr><td>GBP/USD</td><td>Up</td><td>42%</td><td>+0.6 ATR</td><td><span class="chip ok">Buys allowed</span></td></tr>
+          <tr><td>EUR/USD</td><td>Down</td><td>71%</td><td>-1.3 ATR</td><td><span class="chip no">Held back</span></td></tr>
+          <tr><td>USD/JPY</td><td>Up</td><td>35%</td><td>+0.2 ATR</td><td><span class="chip ok">Buys allowed</span></td></tr>
+          <tr><td>USD/CAD</td><td>Down</td><td>55%</td><td>-0.4 ATR</td><td><span class="chip ok">Sells allowed</span></td></tr></tbody></table></div>
+        <p class="caption">Illustrative values. Trend, momentum and breakout strategies trade with the 20-day trend and before 60% of the day's usual range is used; pullbacks must not chase; mean reversion is unfiltered.</p>
+      </div>
+      <div class="ui">
+        <div class="ui-head"><b>Coming next</b><span class="badge b-soon">Coming soon</span></div>
+        <div class="ui-row"><span>Currency strength and relative performance</span><span><span class="chip">Planned</span></span></div>
+        <div class="ui-row"><span>Strategy suitability by market regime</span><span><span class="chip">Planned</span></span></div>
+        <div class="ui-row"><span>Changes in strategy behaviour</span><span><span class="chip ok">In beta</span></span></div>
+        <div class="ui-row"><span>Portfolio concentration and correlation</span><span><span class="chip ok">In beta</span></span></div>
+        <p class="caption">We show what the platform does today and label what is still being built.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tour" aria-labelledby="tour-h">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">Product tour</p>
+      <h2 id="tour-h">See Cerebro in action.</h2>
+      <p class="lead">Seven steps from a trading idea to a monitored portfolio.</p>
+    </div>
+    <div class="tour reveal">
+      <div class="tour-steps" role="tablist" aria-label="Product tour" aria-orientation="vertical">
+        <button role="tab" id="s1" aria-controls="v1" aria-selected="true"><span>01</span>Enter an idea</button>
+        <button role="tab" id="s2" aria-controls="v2" aria-selected="false" tabindex="-1"><span>02</span>Set the rules</button>
+        <button role="tab" id="s3" aria-controls="v3" aria-selected="false" tabindex="-1"><span>03</span>Backtest and challenge</button>
+        <button role="tab" id="s4" aria-controls="v4" aria-selected="false" tabindex="-1"><span>04</span>Forward-test in the Sandbox</button>
+        <button role="tab" id="s5" aria-controls="v5" aria-selected="false" tabindex="-1"><span>05</span>Prove it on the Bench</button>
+        <button role="tab" id="s6" aria-controls="v6" aria-selected="false" tabindex="-1"><span>06</span>Go live with risk controls</button>
+        <button role="tab" id="s7" aria-controls="v7" aria-selected="false" tabindex="-1"><span>07</span>Monitor the portfolio</button>
+      </div>
+      <div class="tour-view" role="tabpanel" id="v1" aria-labelledby="s1"><span class="badge b-soon">Coming soon</span><h3>Enter a trading idea</h3><p>Describe what you want to trade in plain English, or pick a published method from the research library.</p><div class="ui-code"><span class="k">Idea</span>  "Fade the first push outside the Asian range when London opens"</div></div>
+      <div class="tour-view" role="tabpanel" id="v2" aria-labelledby="s2" hidden><span class="badge b-beta">In beta</span><h3>Generate or configure the rules</h3><p>Rules are built from tested blocks with every setting written down - entries, filters, stops, targets and trade management. Today rules are configured with our team; the AI builder is coming soon.</p><div class="ui-code"><span class="k">entry</span>   <span class="v">SESSION_RANGE_BREAK</span> fade, London 07:00 UTC
+<span class="k">filter</span>  <span class="v">MIN_RANGE</span> Asian range 15-60 pips
+<span class="k">stop</span>    beyond the day's extreme + 0.1 ATR</div></div>
+      <div class="tour-view" role="tabpanel" id="v3" aria-labelledby="s3" hidden><span class="badge b-beta">In beta</span><h3>Run backtests and robustness checks</h3><p>Years of minute data, realistic costs, and a separate judgement on unseen years. Reshuffled histories set the strategy's normal range for later.</p><div class="ui"><div class="ui-row"><span>Trades · profit factor · win rate</span><span>412 · 1.18 · 39%</span></div><div class="ui-row"><span>Unseen years</span><span><span class="chip ok">Holds up</span></span></div><p class="caption">Illustrative data.</p></div></div>
+      <div class="tour-view" role="tabpanel" id="v4" aria-labelledby="s4" hidden><span class="badge b-beta">In beta</span><h3>Forward-test in the Sandbox</h3><p>Paper trading on live prices, with and without the market filter, under your own risk settings.</p><div class="shot" style="margin-top:20px"><img src="assets/app-overview.jpg" width="1280" height="700" loading="lazy" alt="Sandbox dashboard with illustrative data"></div><p class="caption">The Sandbox dashboard - illustrative data.</p></div>
+      <div class="tour-view" role="tabpanel" id="v5" aria-labelledby="s5" hidden><span class="badge b-beta">In beta</span><h3>Review readiness on the Bench</h3><p>Demo-account trading with real fills, compared with the strategy's normal range. Passing the Bench is what makes a strategy eligible for Live.</p><div class="ui"><div class="ui-row"><span>Demo trades</span><span>31</span></div><div class="ui-row"><span>Result vs normal range</span><span>58th percentile <span class="chip ok">Ready</span></span></div><p class="caption">Illustrative data.</p></div></div>
+      <div class="tour-view" role="tabpanel" id="v6" aria-labelledby="s6" hidden><span class="badge b-soon">Coming soon</span><h3>Deploy to Live with risk controls</h3><p>You approve what goes live. Every order passes your risk per trade, open-position and daily-loss limits before it reaches your account.</p><div class="ui"><div class="ui-row"><span>Risk per trade</span><span>£50</span></div><div class="ui-row"><span>Daily loss limit</span><span>£150</span></div><p class="caption">Illustrative settings.</p></div></div>
+      <div class="tour-view" role="tabpanel" id="v7" aria-labelledby="s7" hidden><span class="badge b-beta">In beta</span><h3>Monitor the portfolio</h3><p>Strategy health, correlation, currency exposure and alerts on your phone - including a daily summary and a watchdog that speaks up if anything stops.</p><div class="shot" style="margin-top:20px"><img src="assets/app-strategies.jpg" width="1248" height="254" loading="lazy" alt="Strategy comparison table with illustrative data"></div><p class="caption">Illustrative data.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="why" aria-labelledby="why-h">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="eyebrow">Why Cerebro</p>
+      <h2 id="why-h">More than signals. More than automation.</h2>
+      <p class="lead">Most trading tools cover one part of the process. Cerebro connects strategy research, testing, execution and ongoing portfolio management in a single workflow.</p>
+    </div>
+    <div class="cards reveal">
+      <div class="card"><div class="icon"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/></svg></div><h3>Research before execution</h3><p>Rigorous validation and stress testing are part of building a strategy, not an afterthought.</p></div>
+      <div class="card"><div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><h3>Portfolio thinking</h3><p>Strategies are judged together - correlation and shared currencies included - not as isolated systems.</p></div>
+      <div class="card"><div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg></div><h3>Automation on your terms</h3><p>Your execution preferences, your trade-management rules, your risk boundaries.</p></div>
+      <div class="card"><div class="icon"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><h3>Continuous evaluation</h3><p>Live results are compared with expectations, so you know when a strategy deserves a closer look.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="final reveal" id="beta" aria-labelledby="beta-h">
+    <img src="assets/logo-neon.svg" alt="" width="84" height="82" style="margin:0 auto 18px" loading="lazy">
+    <h2 id="beta-h">Stop managing individual trades. <span class="grad">Start managing your trading system.</span></h2>
+    <p class="lead">Build, test and manage systematic trading strategies with the analysis, automation and controls of one connected platform. Cerebro is in private beta - request a place below.</p>
+    <form class="beta-form" id="beta-form" data-to="{{BETA_EMAIL}}" novalidate>
+      <label>Email address<input type="email" name="email" autocomplete="email" required></label>
+      <label>Trading experience (optional)<select name="experience"><option value="">Choose…</option><option>New to systematic trading</option><option>Some experience</option><option>Experienced systematic trader</option></select></label>
+      <label>Main interest (optional)<select name="interest"><option value="">Choose…</option><option>Building and testing strategies</option><option>Automated trading</option><option>Managing a portfolio of strategies</option></select></label>
+      <label class="consent"><input type="checkbox" name="consent" value="yes"> <span>I agree to Cerebro contacting me about the private beta. We'll use your details only for this - see our <a href="privacy.html">privacy policy</a>.</span></label>
+      <button class="btn btn-primary" type="submit">Join the Private Beta</button>
+      <p class="form-msg" id="form-msg" role="status" aria-live="polite"></p>
+      <p class="fine">This opens an email to {{BETA_EMAIL}} with your answers filled in - nothing is stored on this website. <a href="product.html">Explore the platform</a> in the meantime.</p>
+    </form>
+  </section>
+</div>

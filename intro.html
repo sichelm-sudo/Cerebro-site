@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cerebro — Trading Intelligence</title>
+<meta name="description" content="Cerebro - Trading Intelligence.">
+<link rel="icon" href="assets/logo-neon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#04060c">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tradecerebro.com/">
+<meta property="og:title" content="Cerebro — Trading Intelligence">
+<meta property="og:description" content="Cerebro - Trading Intelligence.">
+<meta property="og:image" content="https://tradecerebro.com/og-image.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tradecerebro.com/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #04060c; --ink: #e8eef8; --dim: #7f8aa3; --green: #2fe39a; --red: #ff5470; --cyan: #5ab8ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  #track { height: 100vh; position: relative; }
+  #replay { position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%); background: none; border: 1px solid rgba(90,184,255,0.35); color: var(--dim); font: 500 12px "JetBrains Mono", monospace; letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 18px; border-radius: 999px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.6s, color 0.2s, border-color 0.2s; }
+  #replay.show { opacity: 1; pointer-events: auto; }
+  #replay:hover { color: var(--ink); border-color: var(--cyan); }
+  #stage { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .caption { position: absolute; left: 50%; transform: translate(-50%, 0); text-align: center; pointer-events: none; opacity: 0; width: min(90vw, 760px); }
+  .caption h2 { font-weight: 300; font-size: clamp(22px, 3.6vw, 42px); letter-spacing: -0.01em; text-shadow: 0 2px 24px #000; }
+  .caption p { margin-top: 10px; color: var(--dim); font-size: clamp(13px, 1.4vw, 17px); text-shadow: 0 2px 16px #000; }
+  #c2 { bottom: 12vh; } #c3 { bottom: 12vh; }
+  #title { top: 70%; transform: translate(-50%, 0); }
+  #title h1 { font-weight: 700; font-size: clamp(40px, 6.5vw, 88px); letter-spacing: -0.04em; line-height: 1; filter: drop-shadow(0 0 18px rgba(47,227,154,0.25)); }
+  #title h1 span { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #title .tag { margin-top: 14px; font-size: clamp(14px, 2vw, 22px); letter-spacing: 0.35em; text-transform: uppercase; color: var(--dim); font-weight: 500; }
+  #note { position: fixed; top: 10px; right: 12px; font: 500 11px "JetBrains Mono", monospace; color: #4b556b; z-index: 5; }
+
+  /* ---------- page content below the animation */
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  #down { position: absolute; bottom: 5vh; right: 4vw; color: var(--dim); font: 500 11px "JetBrains Mono", monospace; letter-spacing: 0.25em; text-transform: uppercase; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.8s; }
+  #down.show { opacity: 1; }
+  #down span { font-size: 16px; animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(5px); } }
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(16px, 4vw, 48px); background: rgba(4,6,12,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(90,184,255,0.10); transform: translateY(-100%); transition: transform 0.4s; }
+  #nav.show { transform: none; }
+  #nav .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; letter-spacing: -0.02em; font-size: 18px; }
+  #nav .brand img { width: 30px; }
+  #nav .links { display: flex; gap: clamp(10px, 2.2vw, 28px); align-items: center; }
+  #nav .links a { color: var(--dim); text-decoration: none; font-size: 14px; }
+  #nav .links a:hover { color: var(--ink); }
+  #nav .links a.login { color: var(--ink); }
+  #hero-login { position: fixed; top: 14px; right: clamp(16px, 4vw, 48px); z-index: 9; color: var(--dim); font: 500 13px Inter, system-ui, sans-serif; text-decoration: none; border: 1px solid rgba(90,184,255,0.3); padding: 6px 14px; border-radius: 999px; transition: opacity 0.3s, color 0.2s; }
+  #hero-login:hover { color: var(--ink); border-color: var(--cyan); }
+  #nav .cta-sm { color: var(--ink) !important; border: 1px solid rgba(47,227,154,0.5); padding: 6px 14px; border-radius: 999px; }
+  @media (max-width: 760px) { #nav .links a:not(.cta-sm):not(.login) { display: none; } }
+  main { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 40px); }
+  main section { padding: clamp(70px, 11vw, 130px) 0 0; }
+  .eyebrow { color: var(--green); font: 500 12px "JetBrains Mono", monospace; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 14px; }
+  main h2 { font-weight: 700; font-size: clamp(28px, 4.2vw, 48px); line-height: 1.1; letter-spacing: -0.03em; max-width: 920px; }
+  .grad { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { color: #aab4c8; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.6; max-width: 760px; margin-top: 22px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 32px; }
+  .cta { display: inline-block; padding: 14px 26px; border-radius: 999px; background: linear-gradient(90deg, #3d9be0, #16a870); color: #fff; font-weight: 600; text-decoration: none; box-shadow: 0 0 30px rgba(47,227,154,0.25); transition: transform 0.2s, box-shadow 0.2s; }
+  .cta:hover { transform: translateY(-1px); box-shadow: 0 0 44px rgba(47,227,154,0.4); }
+  .ghost { display: inline-block; padding: 14px 26px; border-radius: 999px; border: 1px solid rgba(90,184,255,0.35); color: var(--ink); text-decoration: none; }
+  .steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 44px; counter-reset: s; }
+  .steps li { padding: 26px; border-radius: 16px; background: linear-gradient(180deg, rgba(90,184,255,0.06), rgba(90,184,255,0.01)); border: 1px solid rgba(90,184,255,0.12); }
+  .steps .n { font: 700 13px "JetBrains Mono", monospace; color: var(--green); }
+  .steps h3, .card h3 { font-size: 19px; margin: 10px 0 8px; letter-spacing: -0.01em; }
+  .steps p, .card p { color: #9aa6bf; line-height: 1.6; font-size: 15px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 44px; }
+  .card { padding: 26px; border-radius: 16px; background: #0a0e18; border: 1px solid #172033; transition: border-color 0.3s, transform 0.3s; }
+  .card:hover { border-color: rgba(47,227,154,0.35); transform: translateY(-2px); }
+  .card svg { width: 34px; height: 34px; fill: none; stroke: url(#gline); stroke: var(--cyan); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(90,184,255,0.5)); }
+  .split { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(30px, 5vw, 70px); align-items: start; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+  .checks { list-style: none; display: grid; gap: 18px; }
+  .checks li { padding-left: 34px; position: relative; color: #9aa6bf; line-height: 1.6; }
+  .checks li b { color: var(--ink); }
+  .checks li::before { content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle, var(--green) 35%, rgba(47,227,154,0.15) 40%); box-shadow: 0 0 12px rgba(47,227,154,0.5); }
+  .beta { text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 40px !important; }
+  .beta-logo { width: 110px; filter: drop-shadow(0 0 30px rgba(47,227,154,0.3)); margin-bottom: 20px; }
+  .beta h2 { margin: 0 auto; }
+  .beta .lead { margin: 18px auto 30px; }
+  .mail { color: var(--dim); font: 500 13px "JetBrains Mono", monospace; margin-top: 14px; }
+  footer { max-width: 1120px; margin: 90px auto 0; padding: 30px clamp(18px, 4vw, 40px) 50px; border-top: 1px solid #172033; color: #6b7690; font-size: 13px; line-height: 1.6; }
+  .foot-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .foot-brand img { width: 34px; }
+  .foot-brand b { display: block; color: var(--ink); font-size: 15px; }
+  .foot-brand span { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; }
+  .risk { max-width: 860px; }
+  .copy { margin-top: 14px; }
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.9s ease, transform 0.9s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+<a id="hero-login" href="https://app.tradecerebro.com">Log in</a>
+<div id="track"><a id="top"></a>
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div class="caption" id="c2"><h2>Signals, not noise.</h2><p>Each price becomes a connection.</p></div>
+    <div class="caption" id="c3"><h2>One mind watching them all.</h2></div>
+    <div class="caption" id="title"><h1><span>Cerebro</span></h1><div class="tag">Trading Intelligence</div></div>
+    <button id="replay" type="button">replay</button>
+    <a id="down" href="#top-content" aria-label="Scroll down">scroll<span>↓</span></a>
+  </div>
+</div>
+<nav id="nav">
+  <a href="#top" class="brand"><img src="assets/logo-neon.svg" alt=""><span>Cerebro</span></a>
+  <div class="links"><a href="#how">How it works</a><a href="#features">Features</a><a href="#proof">Proof</a><a href="#control">Control</a><a href="https://app.tradecerebro.com" class="login">Log in</a><a href="#beta" class="cta-sm">Join the beta</a></div>
+</nav>
+
+<main>
+  <section class="intro reveal" id="top-content">
+    <p class="eyebrow">The operating system for systematic trading</p>
+    <h2>Most trading platforms help you place trades.<br><span class="grad">Cerebro helps you decide what deserves to be traded.</span></h2>
+    <p class="lead">Cerebro is a research lab, a trading desk and a risk manager in one. It turns trading ideas into exact, testable rules, tries hard to break them on years of market data, and only lets the survivors near your money - first on paper, then on a demo account, then live, at your pace.</p>
+    <div class="cta-row"><a href="#beta" class="cta">Join the private beta</a><a href="#how" class="ghost">See how it works</a></div>
+  </section>
+
+  <section id="how" class="reveal">
+    <p class="eyebrow">How it works</p>
+    <h2>Research. Validate. Deploy. Monitor. Adapt.</h2>
+    <ol class="steps">
+      <li><span class="n">01</span><h3>Discover</h3><p>Ideas from decades of published trading research, turned into precise, mechanical rules - every setting written down, nothing left to interpretation.</p></li>
+      <li><span class="n">02</span><h3>Validate</h3><p>Tested on years of minute-by-minute prices with realistic trading costs, then judged on data the strategy has never seen. Test the idea, then try to break it.</p></li>
+      <li><span class="n">03</span><h3>Prove</h3><p>Backtests only earn a place in the Sandbox. Paper trading forward earns trust. A demo account earns the right to go live.</p></li>
+      <li><span class="n">04</span><h3>Deploy</h3><p>When you choose to run a strategy, Cerebro trades it for you - sizing every position to the risk you set, with stops and targets in place from the first second.</p></li>
+      <li><span class="n">05</span><h3>Monitor</h3><p>Every strategy is watched against its own normal range. A losing streak doesn't always mean the edge is gone - Cerebro knows the difference.</p></li>
+      <li><span class="n">06</span><h3>Adapt</h3><p>Strategies that drift outside their range step down a tier; stronger ones step up. The portfolio keeps renewing itself, by rules - not by mood.</p></li>
+    </ol>
+  </section>
+
+  <section id="features" class="reveal">
+    <p class="eyebrow">Features</p>
+    <h2>Built to find an edge - and to protect it.</h2>
+    <div class="cards">
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/></svg><h3>Research Lab</h3><p>An AI research partner that reads a trading idea, builds it faithfully, asks its own questions, replays it and suggests variations - with every assumption labelled.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l3-4 3 2 5-7"/></svg><h3>One engine, no surprises</h3><p>The same code decides in the backtest and in live trading, and it never peeks at future prices. What you tested is what trades.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><h3>Realistic costs</h3><p>Spreads, wider late-evening spreads and stop slippage are built into every result, so an edge that only exists before costs is caught early.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><h3>Market layer</h3><p>A filter above the strategies that reads the wider market - trend and daily context - and holds back entries that fight it. It runs side by side with an unfiltered copy, so you can see exactly what it blocked and what that was worth.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><h3>Portfolio intelligence</h3><p>A profitable strategy can still be the wrong one for your portfolio. Cerebro checks correlation and currency exposure, so ten strategies aren't secretly one bet.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg><h3>Trade management</h3><p>Profit locks, trailing stops and time limits, applied exactly as the strategy was tested - checked every few minutes, recorded every time.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M4 20h16M6 16V9M10 16V5M14 16v-6M18 16V8"/></svg><h3>Dashboard</h3><p>Every strategy, every trade, in one place - with profit factor and win rate always shown next to returns, never returns alone.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6 2 2 6 3-4 4 3 3-14z"/></svg><h3>Alerts that matter</h3><p>A daily summary and instant alerts on your phone - trades opened and closed, anything blocked, and a watchdog that speaks up if anything stops.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg><h3>Connects to your broker</h3><p>Runs on IG, from paper trading through demo to a live account - reconciling with the broker so nothing is lost or invented across a restart.</p></div>
+    </div>
+  </section>
+
+  <section id="proof" class="reveal split">
+    <div>
+      <p class="eyebrow">Proof, not promises</p>
+      <h2>Cerebro doesn't look for reasons to approve a strategy. <span class="grad">It looks for reasons to reject it.</span></h2>
+    </div>
+    <ul class="checks">
+      <li><b>Unseen data.</b> Strategies are judged on years they were never built on, and the rules that run the portfolio are set the same way - by thousands of simulated portfolios that never see the future.</li>
+      <li><b>Normal ranges.</b> Thousands of reshuffled trade histories show what a strategy's good and bad runs normally look like, so a real problem stands out from bad luck.</li>
+      <li><b>Every number in context.</b> Results come with profit factor and win rate, after costs - never a single flattering figure.</li>
+      <li><b>Versions that can't change.</b> Every strategy version is fingerprinted and frozen, so what was tested is exactly what runs.</li>
+      <li><b>Data you can trust.</b> Price history is cross-checked between independent sources, month by month, before any test runs on it.</li>
+    </ul>
+  </section>
+
+  <section id="control" class="reveal">
+    <p class="eyebrow">You stay in control</p>
+    <h2>Your risk. Your rules. Your pace.</h2>
+    <div class="cards three">
+      <div class="card"><h3>Your limits, always</h3><p>Risk per trade, daily loss limits and maximum open positions are yours to set - and every order passes through them before it reaches the broker.</p></div>
+      <div class="card"><h3>Automatic, semi or manual</h3><p>Let Cerebro move strategies between tiers by its rules, approve each move yourself, or make every decision by hand.</p></div>
+      <div class="card"><h3>Pause any time</h3><p>Pause a strategy, a market or everything at once. Every decision and every order is written down, so you can always see why something happened.</p></div>
+    </div>
+  </section>
+
+  <section id="beta" class="reveal beta">
+    <img src="assets/logo-neon.svg" alt="" class="beta-logo">
+    <h2>Build the evidence. <span class="grad">Trade the evidence.</span></h2>
+    <p class="lead">Cerebro is in private beta. If you trade systematically - or want to - we'd like to hear from you.</p>
+    <a class="cta" href="mailto:hello@tradecerebro.com?subject=Cerebro%20beta">Join the private beta</a>
+    <p class="mail">hello@tradecerebro.com</p>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-brand"><img src="assets/logo-neon.svg" alt=""><div><b>Cerebro</b><span>Trading Intelligence</span></div></div>
+  <p class="risk"><b>Important:</b> Spread bets and CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. You should consider whether you understand how they work and whether you can afford to take the high risk of losing your money. Backtests and past performance are not a reliable indicator of future results. Cerebro is software that carries out your own decisions; it does not provide investment advice.</p>
+  <p class="copy">© 2026 Cerebro · tradecerebro.com</p>
+</footer>
+
+<script>
+(() => {
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const small = matchMedia("(max-width: 700px)").matches;
+  const $ = id => document.getElementById(id);
+  let W = 0, H = 0, DPR = 1;
+
+  // ---------- helpers
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const band = (p, a, b, c, d) => clamp((p - a) / (b - a)) * (1 - clamp((p - c) / (d - c))); // fade in a..b, out c..d
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+  // ---------- made-up ticker rows (generic: invented symbols plus FX pairs)
+  const SYMS = ["GBP/USD", "EUR/USD", "USD/JPY", "AUD/USD", "USD/CAD", "EUR/GBP", "EUR/JPY", "NVX", "QRTZ", "HLX", "ORBT", "KNTC", "VALE", "SYNA", "AXON", "PLSR", "LMNA", "CRDX", "FLUX", "NRVE", "MTRX", "DLTA"];
+  function tickerText(r) {
+    let s = "";
+    for (let k = 0; k < 14; k++) {
+      const sym = SYMS[Math.floor(rnd() * SYMS.length)], up = rnd() > 0.45;
+      const px = sym.includes("/") ? (0.6 + rnd() * 1.2).toFixed(5) : (10 + rnd() * 900).toFixed(2);
+      const chg = `${up ? "▲" : "▼"}${(rnd() * 2.4).toFixed(2)}%   `;
+      s += `${sym} ${px} ${chg}`;
+      r.parts.push({ sym, px, up, chg });
+    }
+    return s;
+  }
+  const ROWS = small ? 7 : 9;
+  const rows = Array.from({ length: ROWS }, (_, i) => { const r = { parts: [], dir: i % 2 ? 1 : -1, speed: 40 + rnd() * 60, off: rnd() * 1000 }; r.text = tickerText(r); return r; });
+
+  // ---------- brain (world coordinates, side view facing left, roughly 1000 x 760)
+  const BC = { x: 500, y: 380 };
+  // a hand-drawn cerebrum silhouette (frontal lobe left, temporal lobe dipping below, occipital right), smoothed
+  const CTRL = [[150,430],[98,340],[108,240],[165,158],[265,100],[395,72],[530,74],[655,98],[765,148],[852,228],[892,326],[872,418],[808,468],[712,482],[628,500],[556,540],[456,566],[352,552],[282,512],[252,462],[205,446]];
+  function catmull(pts, per = 14) {
+    const out = [], n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      for (let k = 0; k < per; k++) {
+        const t = k / per, t2 = t * t, t3 = t2 * t;
+        out.push([0, 1].map(d => 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * t + (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * t2 + (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * t3)));
+      }
+    }
+    return out;
+  }
+  // gyri: small bumps along the outline (pushed out along the normal)
+  const smooth = catmull(CTRL);
+  let arc = 0;
+  const outline = smooth.map((pt, i) => {
+    const nx = smooth[(i + 1) % smooth.length], pv = smooth[(i - 1 + smooth.length) % smooth.length];
+    arc += Math.hypot(pt[0] - pv[0], pt[1] - pv[1]);
+    const tx = nx[0] - pv[0], ty = nx[1] - pv[1], L = Math.hypot(tx, ty) || 1;
+    const bump = 7 * Math.sin(arc / 15) + 3 * Math.sin(arc / 6.5);
+    return [pt[0] + (ty / L) * bump, pt[1] - (tx / L) * bump];
+  });
+  outline.push(outline[0]);
+  function inPoly(x, y, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+  const inCerebrum = (x, y) => inPoly(x, y, outline);
+  const inCerebellum = (x, y) => ((x - 765) / 118) ** 2 + ((y - 545) / 66) ** 2 <= 1;
+  const inStem = (x, y) => ((x - 635) / 40) ** 2 + ((y - 640) / 110) ** 2 <= 1 && y > 520;
+  const inBrain = (x, y) => inCerebrum(x, y) || inCerebellum(x, y) || inStem(x, y);
+  // a few sulci (folds) drawn faintly in the final view: lateral, central, and some smaller ones
+  const SULCI = [
+    [[252,462],[330,420],[420,392],[500,372],[575,350]],
+    [[540,80],[520,160],[500,230],[470,300],[455,370]],
+    [[420,80],[400,150],[380,220],[350,290]],
+    [[660,110],[640,190],[625,270],[640,350],[690,410]],
+    [[180,200],[240,230],[300,250],[340,300]],
+    [[760,170],[740,250],[770,330],[820,380]],
+    [[330,470],[400,500],[480,505],[550,480]],
+  ].map(c => catmull(c.concat([c[c.length - 1]]), 8).slice(0, (c.length - 1) * 8));
+  const CEREBELLUM_FOLDS = [-36, -18, 0, 18, 36].map(dy => { const pts = []; for (let k = 0; k <= 40; k++) { const u = -1 + (2 * k) / 40, x = 765 + u * 118 * Math.sqrt(Math.max(0, 1 - (dy / 66) ** 2)) * 0.92; pts.push([x, 545 + dy + 4 * Math.sin(k * 0.9)]); } return pts; });
+
+  const NODES = small ? 460 : 820;
+  const nodes = [];
+  while (nodes.length < NODES) {
+    const x = 60 + rnd() * 880, y = 50 + rnd() * 720;
+    if (!inBrain(x, y)) continue;
+    // denser near the surface, like cortex
+    const edge = !inBrain(x + 26, y) || !inBrain(x - 26, y) || !inBrain(x, y + 26) || !inBrain(x, y - 26);
+    if (!edge && rnd() < 0.4) continue;
+    nodes.push({ x, y, glow: 0, hue: 0 });
+  }
+  // a few nearest neighbours each = the synapses
+  const edges = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const d = nodes.map((n, j) => [j, (n.x - nodes[i].x) ** 2 + (n.y - nodes[i].y) ** 2]).filter(([j]) => j !== i).sort((a, b) => a[1] - b[1]).slice(0, 4);
+    for (const [j, dd] of d) if (j > i && dd < 70 * 70) edges.push([i, j]);
+  }
+
+  // ---------- particles: sampled from the ticker text when it dissolves
+  const MAXP = small ? 1600 : 3600;
+  let particles = [], sampledAt = null;
+  const textCanvas = document.createElement("canvas"), tctx = textCanvas.getContext("2d");
+
+  function rowLayout(i) { const gap = H / (ROWS + 1); return { y: gap * (i + 1), size: Math.max(13, Math.min(30, gap * 0.42)) }; }
+  function drawRows(c, alpha, scaleDown = 1) {
+    c.save(); c.globalAlpha = alpha; c.textBaseline = "middle";
+    rows.forEach((r, i) => {
+      const { y, size } = rowLayout(i);
+      c.font = `700 ${size / scaleDown}px "JetBrains Mono", monospace`;
+      const full = c.measureText(r.text).width;
+      let x = -((r.off % full) + full) % full;
+      for (; x < W / scaleDown; x += full) {
+        let cx = x;
+        for (const p of r.parts) {
+          const a = `${p.sym} `, b = `${p.px} `;
+          c.fillStyle = "#e8eef8"; c.fillText(a, cx, y / scaleDown); cx += c.measureText(a).width;
+          c.fillStyle = "#9aa6bf"; c.fillText(b, cx, y / scaleDown); cx += c.measureText(b).width;
+          c.fillStyle = p.up ? "#2fe39a" : "#ff5470";
+          c.fillText(p.chg, cx, y / scaleDown); cx += c.measureText(p.chg).width;
+        }
+      }
+      // separators like an exchange board
+      c.fillStyle = "rgba(90,184,255,0.10)"; c.fillRect(0, (y + size * 0.9) / scaleDown, W / scaleDown, 1);
+    });
+    c.restore();
+  }
+
+  function sampleParticles() {
+    const k = 2; // sample at half resolution
+    textCanvas.width = Math.ceil(W / k); textCanvas.height = Math.ceil(H / k);
+    tctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+    drawRows(tctx, 1, k);
+    const img = tctx.getImageData(0, 0, textCanvas.width, textCanvas.height).data, pts = [];
+    for (let y = 0; y < textCanvas.height; y += 2) for (let x = 0; x < textCanvas.width; x += 2) {
+      const o = (y * textCanvas.width + x) * 4;
+      if (img[o + 3] > 120) pts.push([x * k, y * k, img[o], img[o + 1], img[o + 2]]);
+    }
+    for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
+    particles = pts.slice(0, MAXP).map(([x, y, r, g, b], i) => {
+      const n = nodes[i % nodes.length];
+      const a = rnd() * Math.PI * 2, rad = rnd() * 9;
+      return { sx: x, sy: y, r, g, b, n, jx: Math.cos(a) * rad, jy: Math.sin(a) * rad, delay: rnd() * 0.25 };
+    });
+  }
+
+  // ---------- Marcus's logo (brain + candlesticks) in the neon colours: the network ends as this
+  const LOGO_SRC = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii02NCAtNjQgMTE4NCAxMTUyIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iY2ctbGluZSIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzVhYjhmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzJmZTM5YSIvPjwvbGluZWFyR3JhZGllbnQ+CjxmaWx0ZXIgaWQ9ImNnLWdsb3ciIHg9Ii0zMCUiIHk9Ii0zMCUiIHdpZHRoPSIxNjAlIiBoZWlnaHQ9IjE2MCUiPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjE0IiByZXN1bHQ9ImIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+PC9maWx0ZXI+CjwvZGVmcz4KPGcgZmlsdGVyPSJ1cmwoI2NnLWdsb3cpIj4KPHBhdGggZmlsbD0idXJsKCNjZy1saW5lKSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNIDQyNC41MDAgMTAuMDI1IEMgNDE0LjMxNyAxMC44NDQsIDM5MC41OTYgMTYuODU1LCAzODUuNzI0IDE5Ljg1MSBDIDM4My45NTEgMjAuOTQyLCAzODAuMDg3IDIyLjc0OCwgMzc3LjEzOCAyMy44NjQgQyAzNzQuMTg5IDI0Ljk4MCwgMzcwLjg4NSAyNi42OTksIDM2OS43OTYgMjcuNjg1IEMgMzY4LjcwNyAyOC42NzAsIDM2NS44NzEgMzAuNjA3LCAzNjMuNDk0IDMxLjk4OCBDIDM1My4xNDAgMzguMDA1LCAzMzUuMTAzIDU0LjU2MywgMzI4Ljg0MCA2My44MDEgQyAzMjcuMDg4IDY2LjM4NSwgMzI0LjM4MiA2OS45NzgsIDMyMi44MjcgNzEuNzg1IEMgMzIxLjI3MiA3My41OTEsIDMyMCA3NS41ODcsIDMyMCA3Ni4yMTkgQyAzMjAgNzcuODE0LCAzMTMuMDcxIDg4LjY1MiwgMzA5LjgyNyA5Mi4xMzIgQyAzMDcuNTM3IDk0LjU4OSwgMzA2LjM5MCA5NS4wMDMsIDMwMS44MjcgOTUuMDE5IEMgMjkyLjUwNiA5NS4wNTMsIDI3Ny40NTMgOTcuNjc4LCAyNjcuODI1IDEwMC45NDkgQyAyNjIuNjk2IDEwMi42OTEsIDI1Ni45MjUgMTA0LjYwMSwgMjU1IDEwNS4xOTQgQyAyNTMuMDc1IDEwNS43ODcsIDI1MC4zMzQgMTA3LjA5MCwgMjQ4LjkxMCAxMDguMDkwIEMgMjQ3LjQ4NSAxMDkuMDkwLCAyNDMuODE0IDExMC44NDYsIDI0MC43NTEgMTExLjk5MiBDIDIzNy42ODggMTEzLjEzOCwgMjM0LjU4NSAxMTQuNzk1LCAyMzMuODU1IDExNS42NzQgQyAyMzMuMTI1IDExNi41NTQsIDIzMC42NzYgMTE4LjA2NywgMjI4LjQxMSAxMTkuMDM4IEMgMjI2LjE0NyAxMjAuMDA5LCAyMjIuNzY1IDEyMi4xMDQsIDIyMC44OTcgMTIzLjY5NSBDIDIxOS4wMjkgMTI1LjI4NiwgMjE2LjE1MCAxMjcuNDI2LCAyMTQuNTAwIDEyOC40NDkgQyAyMDQuOTE5IDEzNC4zOTQsIDE4MS4yMjEgMTYwLjkwNywgMTc1LjQxOCAxNzIuMTczIEMgMTc0LjQ3NSAxNzQuMDAzLCAxNzIuNzEzIDE3Ni44NTAsIDE3MS41MDMgMTc4LjUwMCBDIDE3MC4yOTIgMTgwLjE1MCwgMTY4LjUyOCAxODMuNTI1LCAxNjcuNTgzIDE4NiBDIDE2Ni42MzggMTg4LjQ3NSwgMTY0Ljc5OCAxOTIuMDc1LCAxNjMuNDk0IDE5NCBDIDE2Mi4xOTEgMTk1LjkyNSwgMTYwLjQ0NiAyMDAuNDU3LCAxNTkuNjE4IDIwNC4wNzEgQyAxNTguNzg5IDIwNy42ODYsIDE1Ny4yMTIgMjEyLjkyNSwgMTU2LjExMyAyMTUuNzE0IEMgMTUzLjA1MiAyMjMuNDc5LCAxNTEgMjQwLjAyMSwgMTUxIDI1Ni45MjggQyAxNTEgMjc2Ljg2NywgMTUwLjc3MiAyNzcuMzE3LCAxMzguODEyIDI4MC45ODMgQyAxMzYuNzg0IDI4MS42MDUsIDEzNC4wMDEgMjgyLjk5OCwgMTMyLjYyOCAyODQuMDc4IEMgMTMxLjI1NCAyODUuMTU5LCAxMjguMjE5IDI4Ni43MTcsIDEyNS44ODQgMjg3LjU0MSBDIDEyMy41NDggMjg4LjM2NSwgMTIwLjI1NiAyOTAuMDg5LCAxMTguNTY5IDI5MS4zNzEgQyAxMTYuODgxIDI5Mi42NTQsIDExMy45MjUgMjk0LjUwNywgMTEyIDI5NS40ODggQyAxMTAuMDc1IDI5Ni40NzAsIDEwNi44MzUgMjk4LjY3NCwgMTA0Ljc5OSAzMDAuMzg2IEMgMTAyLjc2NCAzMDIuMDk5LCA5OC4zNTYgMzA1Ljc1MCwgOTUuMDA1IDMwOC41MDAgQyA4MC44NTMgMzIwLjExMywgNjEuNjc3IDM0Mi43NDQsIDU2LjAzMCAzNTQuNTAwIEMgNTQuOTczIDM1Ni43MDAsIDUyLjk0NCAzNjAuMDY5LCA1MS41MjIgMzYxLjk4NyBDIDUwLjEwMCAzNjMuOTA1LCA0OC4zMDYgMzY3LjU5OSwgNDcuNTM0IDM3MC4xOTcgQyA0Ni43NjMgMzcyLjc5NCwgNDUuMDMwIDM3Ni44NTAsIDQzLjY4MyAzNzkuMjA5IEMgNDIuMzM2IDM4MS41NjksIDQwLjQ0MyAzODYuODc1LCAzOS40NzUgMzkxIEMgMzguNTA3IDM5NS4xMjUsIDM2LjkxMCA0MDAuNTc4LCAzNS45MjUgNDAzLjExNyBDIDMxLjI4MSA0MTUuMDkwLCAyOS41NDQgNDU4LjE1MiwgMzIuODMzIDQ3OS43NjkgQyAzMy44NDAgNDg2LjM5MSwgMzguNzc0IDUwMy4xMDAsIDQyLjIwMiA1MTEuNTAwIEMgNDUuODA1IDUyMC4zMjgsIDQ1LjcxMiA1MjEuMjE3LCA0MC4zNTkgNTI5LjA5MCBDIDM3LjY4NyA1MzMuMDIxLCAzNC42NTUgNTM3LjY0NiwgMzMuNjIzIDUzOS4zNjggQyAyNi45MDMgNTUwLjU4MywgMjUuMTIzIDU1My45NDIsIDI0LjAxOSA1NTcuNTAwIEMgMjMuMzM3IDU1OS43MDAsIDIxLjY2NCA1NjMuNDQ2LCAyMC4zMDMgNTY1LjgyNCBDIDE3LjAzOCA1NzEuNTMwLCAxMS4yMjEgNTk1LjQ5MiwgOS44NTcgNjA4Ljg1OSBDIDguNDI4IDYyMi44NjMsIDkuMzQwIDY1MS43MTAsIDExLjQ0MyA2NTkgQyAxMi4zMTYgNjYyLjAyNSwgMTMuOTQ3IDY2OC41NTAsIDE1LjA2OSA2NzMuNTAwIEMgMTYuMTkxIDY3OC40NTAsIDE4LjYwMSA2ODUuNjUwLCAyMC40MjQgNjg5LjUwMCBDIDIyLjI0OCA2OTMuMzUwLCAyNC4wMDggNjk3LjYyNSwgMjQuMzM2IDY5OSBDIDI0LjY2MyA3MDAuMzc1LCAyNi41MjIgNzAzLjk2MCwgMjguNDY2IDcwNi45NjYgQyAzMC40MTAgNzA5Ljk3MywgMzIgNzEyLjk3NiwgMzIgNzEzLjY0MCBDIDMyIDcxNC4zMDMsIDMzLjEzNiA3MTYuMTk2LCAzNC41MjQgNzE3Ljg0NiBDIDM1LjkxMiA3MTkuNDk2LCAzOC41MDAgNzIyLjg4NywgNDAuMjc0IDcyNS4zODMgQyA0Ny44MzggNzM2LjAyMSwgNTIuNDMxIDc0MS4yNTcsIDYxLjY4NyA3NDkuNzk0IEMgNzMuODMzIDc2MC45OTYsIDc5LjUyMyA3NjUuNTU3LCA4My44NjEgNzY3LjU2NCBDIDg1LjcxMCA3NjguNDIwLCA4OS40NzMgNzcwLjY2OCwgOTIuMjIzIDc3Mi41NjAgQyA5NC45NzQgNzc0LjQ1MiwgOTcuNzYyIDc3NiwgOTguNDIwIDc3NiBDIDk5LjA3NyA3NzYsIDEwMi43MzkgNzc3LjU3NCwgMTA2LjU1NyA3NzkuNDk3IEMgMTEwLjM3NiA3ODEuNDIwLCAxMTMuOTc4IDc4Mi45OTUsIDExNC41NjEgNzgyLjk5NyBDIDExNS4xNDUgNzgyLjk5OSwgMTE2LjUzNSA3ODMuODUwLCAxMTcuNjUwIDc4NC44ODkgQyAxMTkuNDU0IDc4Ni41NjksIDExOS43NDkgNzg4LjQ3MywgMTIwLjMyMSA4MDIuMTM5IEMgMTIwLjY4NSA4MTAuODM3LCAxMjEuNjI5IDgxOS44ODYsIDEyMi40OTcgODIzIEMgMTIzLjM0MSA4MjYuMDI1LCAxMjUuMzgzIDgzMy42MTEsIDEyNy4wMzcgODM5Ljg1OCBDIDEyOC42OTAgODQ2LjEwNSwgMTMxLjEwOCA4NTMuMDgwLCAxMzIuNDEwIDg1NS4zNTggQyAxMzMuNzEyIDg1Ny42MzYsIDEzNS4zNDIgODYxLjMwMCwgMTM2LjAzMSA4NjMuNTAwIEMgMTM2LjcyMCA4NjUuNzAwLCAxMzguNTEwIDg2OS4zMDAsIDE0MC4wMDkgODcxLjUwMCBDIDE0MS41MDggODczLjcwMCwgMTQzLjk0MCA4NzcuNTI1LCAxNDUuNDE0IDg4MCBDIDE1My4yNjUgODkzLjE4NiwgMTcxLjIwNCA5MTIuNzc0LCAxODEuNTg4IDkxOS41MDAgQyAxODMuMjg2IDkyMC42MDAsIDE4Ni4yMTEgOTIyLjc3OCwgMTg4LjA4OCA5MjQuMzM5IEMgMTkyLjAyMCA5MjcuNjExLCAyMDUuOTgzIDkzNS45NTksIDIwNy41NjYgOTM1Ljk4MyBDIDIwOC4xNTIgOTM1Ljk5MiwgMjEyLjE3MiA5MzcuODAwLCAyMTYuNTAwIDk0MCBDIDIyMC44MjggOTQyLjIwMCwgMjI1LjE3MyA5NDQsIDIyNi4xNTYgOTQ0IEMgMjI3LjEzOCA5NDQsIDIzMS42NjggOTQ1LjM3MywgMjM2LjIyMSA5NDcuMDUxIEMgMjQ2LjYwNCA5NTAuODc4LCAyNjIuNjg3IDk1MywgMjgxLjMwOCA5NTMgQyAyOTcuMzUxIDk1MywgMjk4Ljk2OSA5NTMuNTcyLCAzMDMuNTMzIDk2MC44NTQgQyAzMDguNDMzIDk2OC42NzIsIDMyNS4wNzQgOTg2LjA2NiwgMzMzLjIyMiA5OTEuODg1IEMgMzU0LjgwMCAxMDA3LjI5NywgMzY3LjM2MyAxMDEyLjgyMiwgMzg5LjAyOCAxMDE2LjQyNiBDIDQxOS44MTggMTAyMS41NDgsIDQxOC44MjQgMTAyMS41MjcsIDQzOC41NzkgMTAxNy40OTggQyA0NDguMjM1IDEwMTUuNTI5LCA0NTguNDY3IDEwMTIuOTg4LCA0NjEuMzE3IDEwMTEuODUyIEMgNDY0LjE2OCAxMDEwLjcxNiwgNDY4LjU3NiAxMDA5LjE2MSwgNDcxLjExMiAxMDA4LjM5NSBDIDQ3My42NDkgMTAwNy42MzAsIDQ3Ni43OTkgMTAwNi4xNjUsIDQ3OC4xMTIgMTAwNS4xNDAgQyA0NzkuNDI2IDEwMDQuMTE0LCA0ODIuNTEwIDEwMDIuMjU0LCA0ODQuOTY2IDEwMDEuMDA3IEMgNDkzLjU3MyA5OTYuNjM2LCA1MTMuMzczIDk3Ny45ODYsIDUyMC45MjEgOTY3LjE0MCBDIDUyNy4zNTAgOTU3LjkwMywgNTM0Ljg4MSA5NDIuMDk0LCA1MzYuNzA4IDkzNCBDIDUzOC44MTIgOTI0LjY4MCwgNTM5Ljk5MCA1NDIuMzkwLCA1MzcuOTM4IDUzNC43NzAgQyA1MzcuMjUwIDUzMi4yMTQsIDUzNS4wMTcgNTI4Ljc3MiwgNTMxLjk4MyA1MjUuNTkwIEwgNTI3LjEyOSA1MjAuNTAwIDQ5NS44MTUgNTIwIEMgNDYxIDUxOS40NDQsIDQ2MS41NzYgNTE5LjU1NSwgNDU3LjEzMiA1MTIuNTQ4IEMgNDQzLjU1OCA0OTEuMTQzLCA0MTcuMDg0IDQ4MC4zMTUsIDM5My40MDUgNDg2LjQ4MyBDIDM4NS41OTggNDg4LjUxNiwgMzgzLjgyMCA0ODcuODI1LCAzNzMuNTAwIDQ3OC43NDggQyAzNTYuMzg1IDQ2My42OTQsIDM0Ny4wODkgNDU2LCAzNDYuMDE2IDQ1NiBDIDM0NS41NDIgNDU2LCAzNDMuNzQyIDQ1NC44MTIsIDM0Mi4wMTYgNDUzLjM2MCBDIDMzOC44MDMgNDUwLjY1NiwgMzMwLjc2MCA0NDYuMTIxLCAzMjEgNDQxLjUwOSBDIDMxNy45NzUgNDQwLjA4MCwgMzEyLjM1MCA0MzcuMzUzLCAzMDguNTAwIDQzNS40NDkgQyAzMDQuNjUwIDQzMy41NDUsIDI5OS43MDAgNDMxLjUzNCwgMjk3LjUwMCA0MzAuOTgwIEMgMjg5LjA2MCA0MjguODU1LCAyODEuNjMxIDQyMy44NzksIDI4MC4wNDQgNDE5LjI4OCBDIDI3OS4wMTIgNDE2LjMwNCwgMjc4Ljg2NiA0MTQuMzI3LCAyNzkuNTQ0IDQxMi41MTIgQyAyODAuNDU2IDQxMC4wNjUsIDMzNy4zMjggMzUyLjM2OCwgMzcwLjM4MiAzMjAuMzU0IEwgMzg2LjAyMSAzMDUuMjA4IDM5OS4yNjAgMzA1LjIzMyBDIDQxNS4yMjQgMzA1LjI2MiwgNDIwLjM0NSAzMDQuMTY5LCA0MjkuNTAwIDI5OC43NzggQyA0MzguOTUxIDI5My4yMTMsIDQ0OC41MzYgMjgzLjc0NCwgNDU0LjM4OSAyNzQuMTkwIEMgNDU2LjEwNCAyNzEuMzkyLCA0NjAuOTg4IDI1MS4yNjUsIDQ2MC45ODggMjQ3IEMgNDYwLjk4NyAyMzguOTQwLCA0NTUuNzM4IDIyMi42NDMsIDQ1MC45MTAgMjE1LjcxNSBDIDQzOC4zNzcgMTk3LjcyNywgNDIyLjUxOSAxODkuMDc1LCA0MDIgMTg5LjAyOSBDIDM2NS4xOTMgMTg4Ljk0NiwgMzM3LjUxNiAyMjMuOTg1LCAzNDUuMTU5IDI2MC45ODkgQyAzNDUuNzk2IDI2NC4wNzUsIDM0Ni4wMjggMjY3Ljc1NCwgMzQ1LjY3NCAyNjkuMTY0IEMgMzQ1LjI4OCAyNzAuNjk5LCAzMzMuNDczIDI4My4zMzAsIDMxNi4yNTQgMzAwLjYxNSBDIDMwMC40MjcgMzE2LjUwMiwgMjc3LjU5NiAzMzkuNTYyLCAyNjUuNTE3IDM1MS44NTkgQyAyNTMuNDM5IDM2NC4xNTcsIDI0Mi41MzIgMzc0LjYwOCwgMjQxLjI4MCAzNzUuMDg0IEMgMjM5Ljk1OCAzNzUuNTg2LCAyMzYuODUwIDM3NS41NDAsIDIzMy44NjYgMzc0Ljk3NCBDIDIyMC44OTMgMzcyLjUxNCwgMjAxLjU3MSAzNzQuNzY2LCAxOTQuNTA1IDM3OS41NjEgQyAxOTIuNTQ3IDM4MC44OTAsIDE4OS43MjAgMzgyLjYzOSwgMTg4LjIyMiAzODMuNDQ3IEMgMTgwLjgxMiAzODcuNDQ5LCAxNjkuNDYzIDQwMC45ODksIDE2Ni45NTcgNDA4LjgxNiBDIDE2NS45NTcgNDExLjk0MiwgMTY0LjQ1MiA0MTYuMzAwLCAxNjMuNjEzIDQxOC41MDAgQyAxNjEuMDcwIDQyNS4xNzAsIDE2MS40NzcgNDQwLjgxMCwgMTY0LjM5MSA0NDguMzI5IEMgMTY1LjcwNSA0NTEuNzIzLCAxNjcuMjQzIDQ1NS45MjMsIDE2Ny44MDggNDU3LjY2MyBDIDE2OS44ODggNDY0LjA2OSwgMTgxLjE4NyA0NzYuMDAxLCAxOTIuMjAwIDQ4My40MjIgQyAyMDIuMjM1IDQ5MC4xODUsIDIxOS4xODIgNDkyLjU2NSwgMjM0LjY0MyA0ODkuMzgzIEMgMjQzLjAwOSA0ODcuNjYyLCAyNDUuNDg0IDQ4Ni41MzksIDI1Ni40NzUgNDc5LjQ4MCBDIDI2NC41MDkgNDc0LjMxOSwgMjY1Ljk5NiA0NzQuMTM5LCAyNzMuNzgwIDQ3Ny4zODUgQyAyNzYuOTI2IDQ3OC42OTcsIDI4MS4wNzUgNDgwLjA5MiwgMjgzIDQ4MC40ODQgQyAyODQuOTI1IDQ4MC44NzcsIDI4OC4zOTMgNDgyLjIzNSwgMjkwLjcwNiA0ODMuNTA0IEMgMjkzLjAxOSA0ODQuNzcyLCAyOTcuMjk0IDQ4Ni41ODQsIDMwMC4yMDYgNDg3LjUzMSBDIDMwMy4xMTggNDg4LjQ3NywgMzA2Ljg1MCA0OTAuMjUzLCAzMDguNTAwIDQ5MS40NzcgQyAzMTAuMTUwIDQ5Mi43MDIsIDMxMi45ODYgNDk0LjQ2OSwgMzE0LjgwMyA0OTUuNDA1IEMgMzE2LjYyMCA0OTYuMzQxLCAzMTguODg4IDQ5Ny44NzAsIDMxOS44NDQgNDk4LjgwMyBDIDMyMC44MDAgNDk5LjczNiwgMzIzLjcxNSA1MDIuMjI5LCAzMjYuMzIzIDUwNC4zNDMgQyAzMzYuOTU1IDUxMi45NjIsIDM0Ny44NjcgNTI0LjEyMCwgMzQ4LjUwNiA1MjcuMDI2IEMgMzQ4Ljg4MyA1MjguNzQ1LCAzNDguNDUyIDUzMi4zNjMsIDM0Ny40NjggNTM1LjczMyBDIDM0NS4yOTYgNTQzLjE3NiwgMzQ1Ljk0MCA1NDkuNDQ5LCAzNTAuMDk1IDU2MS4yOTAgQyAzNTQuNzE4IDU3NC40NjQsIDM2NC44NzkgNTg3LjQ1MywgMzc0IDU5MS44NDggQyAzNzUuOTI1IDU5Mi43NzYsIDM3OS41MjUgNTk0LjczOCwgMzgyIDU5Ni4yMTAgQyAzODkuNTI1IDYwMC42ODMsIDQwNS45OTkgNjAyLjI3MCwgNDE5LjkxOCA1OTkuODYxIEMgNDI5LjQ2MSA1OTguMjA5LCA0NDAuNzYxIDU5MS43NzIsIDQ1MC4yNjIgNTgyLjU3MyBDIDQ2MC4yMTMgNTcyLjkzOCwgNDYwLjA3NCA1NzMsIDQ3MS43OTkgNTczIEMgNDgwLjM1MiA1NzMsIDQ4Mi4wOTggNTczLjI4OSwgNDg0LjM4MiA1NzUuMDg2IEwgNDg3LjAzNCA1NzcuMTcyIDQ4Ni43NjcgNzQ3LjMzNiBMIDQ4Ni41MDAgOTE3LjUwMCA0ODIuNDY5IDkyNi4yNjAgQyA0NzcuODA0IDkzNi4zOTksIDQ2Ny40MjIgOTQ4LjczMSwgNDYwLjY2NSA5NTIuMTYwIEMgNDU4LjM3NCA5NTMuMzIyLCA0NTUuMjk4IDk1NS4yNzgsIDQ1My44MjkgOTU2LjUwNiBDIDQ1Mi4zNTkgOTU3LjczNCwgNDQ3LjUyOCA5NTkuNzE4LCA0NDMuMDkyIDk2MC45MTUgQyA0MzguNjU2IDk2Mi4xMTIsIDQzMy40NjAgOTYzLjc0NiwgNDMxLjU0NSA5NjQuNTQ2IEMgNDI1LjQ0OSA5NjcuMDkzLCA0MDUuNTcyIDk2Ni41MjQsIDM5Ni43NTkgOTYzLjU1MSBDIDM5Mi43NjYgOTYyLjIwNCwgMzg3LjYwOCA5NjAuNjE3LCAzODUuMjk1IDk2MC4wMjQgQyAzODIuOTgzIDk1OS40MzIsIDM3OS44MzMgOTU3Ljg5NiwgMzc4LjI5NSA5NTYuNjEwIEMgMzc2Ljc1OCA5NTUuMzI1LCAzNzMuNTAzIDk1My4yNTksIDM3MS4wNjIgOTUyLjAyMCBDIDM2OC42MjEgOTUwLjc4MSwgMzYyLjA5NiA5NDUuMjA1LCAzNTYuNTYyIDkzOS42MzAgQyAzNDYuNzQxIDkyOS43MzQsIDM0NS4yOTkgOTI3LjYzNiwgMzM3LjEwNiA5MTEuMzA1IEMgMzM0LjQzMSA5MDUuOTc0LCAzMjguOTU3IDkwMC41NTksIDMyMy4zMDAgODk3LjY0NyBDIDMxOS4xMDYgODk1LjQ4OSwgMzEzLjExNiA4OTUuNTY5LCAyOTguNTAwIDg5Ny45ODAgQyAyOTEuOTAwIDg5OS4wNjgsIDI4My43NjEgODk5Ljk2OCwgMjgwLjQxMyA4OTkuOTc5IEMgMjcxLjg1OCA5MDAuMDA4LCAyNDcuNTY5IDg5NS4zNDcsIDI0Mi42MTQgODkyLjcyNSBDIDI0MC4zNTIgODkxLjUyNywgMjM2LjIyNCA4ODkuNjM3LCAyMzMuNDQxIDg4OC41MjQgQyAyMTUuMzQ5IDg4MS4yODUsIDE4OS42NDggODU1LjQyNywgMTgzLjY1MSA4MzguNDI5IEMgMTgyLjg2MSA4MzYuMTkwLCAxODEuMTAxIDgzMi4xNDAsIDE3OS43MzkgODI5LjQyOSBDIDE3NC45NjIgODE5LjkxOCwgMTcyLjE3NiA3OTYuMjYwLCAxNzMuOTc3IDc4MC40OTYgQyAxNzQuNjA2IDc3NC45OTgsIDE3NS41MTIgNzY2LjgxOSwgMTc1Ljk5MSA3NjIuMzIwIEMgMTc3LjE1NCA3NTEuNDA2LCAxNzYuOTYzIDc1MS42OTEsIDE5Ny40NTMgNzMwLjM5NSBDIDIyMC43OTYgNzA2LjEzNSwgMjIwLjU0OSA3MDYuMjk2LCAyMzEuNzI0IDcwOC4wMzUgQyAyMzkuODU1IDcwOS4zMDAsIDI0MC44NzkgNzA5LjI0OSwgMjQ4LjYzNCA3MDcuMTk0IEMgMjU4LjczNCA3MDQuNTE5LCAyNTkuMzAxIDcwNC43MDMsIDI2OC41ODEgNzEzLjY2MyBDIDI4OS4xMDcgNzMzLjQ4MywgMzE2LjE4NCA3NTkuMjY5LCAzMjEuMTc3IDc2My43NTIgQyAzMjQuMjk5IDc2Ni41NTUsIDMzMC43MjMgNzcyLjYzMSwgMzM1LjQ1MiA3NzcuMjU1IEwgMzQ0LjA1MCA3ODUuNjYyIDM0My4zODEgNzk4LjE2OSBDIDM0Mi41NzUgODEzLjI0NSwgMzQzLjkyNiA4MjEuOTE1LCAzNDguMTA5IDgyOC41MTAgQyAzNDkuNjk5IDgzMS4wMTgsIDM1MSA4MzMuNDc4LCAzNTEgODMzLjk3NyBDIDM1MSA4MzUuNzA1LCAzNjEuMTY1IDg0Ni41MjAsIDM2Ni42ODcgODUwLjY2NiBDIDM5OC42NjMgODc0LjY3NCwgNDQ3LjgwMiA4NTcuNzM5LCA0NTcuNDA5IDgxOS40MDEgQyA0NjAuNTEwIDgwNy4wMjUsIDQ2MC41ODIgODA0LjA0NSwgNDU4LjA3MiA3OTEuODYwIEMgNDU1LjYwOSA3NzkuOTAxLCA0NTUuMTI5IDc3OC43MTIsIDQ0OS41NDcgNzcwLjcyNiBDIDQzNS4wMjEgNzQ5Ljk0NiwgNDEzLjY4MiA3NDAuOTc0LCAzODkuNTc1IDc0NS41MTIgTCAzODAuMDU3IDc0Ny4zMDMgMzc2LjI3OCA3NDQuNzM5IEMgMzc0LjIwMCA3NDMuMzI5LCAzNjcuMjc0IDczNy4wNzQsIDM2MC44ODYgNzMwLjgzOCBDIDM1NC40OTggNzI0LjYwMiwgMzQzLjUxNiA3MTQuMTAwLCAzMzYuNDgxIDcwNy41MDAgQyAzMjkuNDQ2IDcwMC45MDAsIDMxNy40NjkgNjg5LjQxOCwgMzA5Ljg2NiA2ODEuOTg0IEwgMjk2LjA0MyA2NjguNDY5IDI5Ni42NTEgNjU1LjQ4NCBDIDI5Ny43MTYgNjMyLjc3MCwgMjkzLjk1MyA2MjEuODgxLCAyODAuMTQyIDYwNy43MTEgQyAyNjYuMzEwIDU5My41MTgsIDI0Mi45NDEgNTg3LjM3OCwgMjIxLjkwNCA1OTIuNDEwIEMgMjExLjYwNiA1OTQuODczLCAxOTcuOTMzIDYwNC42MjAsIDE5MC44NDMgNjE0LjU1MyBDIDE4OS4wMDQgNjE3LjEyOSwgMTg2Ljk0NCA2MTkuOTkxLCAxODYuMjY0IDYyMC45MTQgQyAxODEuNTM3IDYyNy4zMjgsIDE3OC41NDIgNjUzLjYxNSwgMTgxLjYxOSA2NjEuNjczIEMgMTg0LjI0MiA2NjguNTQwLCAxODMuMzkwIDY2OS44NDUsIDE2My4wNzUgNjkwLjA4MSBDIDE0MS43MzMgNzExLjM0MCwgMTQwLjkzMCA3MTEuODgxLCAxMjkuMDc2IDcxMi45OTMgQyAxMjQuMzAzIDcxMy40NDEsIDExOC42NzggNzE0LjUyNSwgMTE2LjU3NyA3MTUuNDAzIEMgMTExLjIyNCA3MTcuNjQwLCAxMDguNjUxIDcxNy40MTIsIDEwMy4wMzUgNzE0LjIwNSBDIDk2LjMwNCA3MTAuMzYxLCA4My4zMDUgNjk1LjQ4MSwgNzguNjQ3IDY4Ni4yOTEgQyA3Ny4yMTIgNjgzLjQ1OSwgNzUuNjE1IDY4MC44ODAsIDc1LjA5NyA2ODAuNTYwIEMgNzQuNTc5IDY4MC4yNDAsIDczLjE1OSA2NzYuOTQ2LCA3MS45NDAgNjczLjIzOSBDIDcwLjcyMSA2NjkuNTMzLCA2OC44NzMgNjY0LjgwNSwgNjcuODMzIDY2Mi43MzMgQyA2My4wMjggNjUzLjE2MSwgNjEuNzI0IDYyMS4xNTQsIDY1LjQ0MSA2MDQgQyA2Ny4zNTIgNTk1LjE4MCwgNzMuNjY1IDU3Ny4yODAsIDc2LjA0MCA1NzMuOTQ0IEMgNzcuMTAzIDU3Mi40NTEsIDc4Ljg3OSA1NjkuMjY2LCA3OS45ODcgNTY2Ljg2NSBDIDgxLjA5NSA1NjQuNDY0LCA4NC4wMzggNTYwLjAyNSwgODYuNTI3IDU1NyBDIDEwNC40MTMgNTM1LjI1OSwgMTA0LjUwMCA1MzUuMTA1LCAxMDQuNTAwIDUyNS4wNzcgQyAxMDQuNTAwIDUxOC4xMzQsIDEwNC4wODMgNTE1LjczOCwgMTAyLjMwOSA1MTIuNTAwIEMgOTkuNTU2IDUwNy40NzUsIDk1LjY4MCA0OTkuNDAxLCA5MS45ODggNDkxIEMgODguMDUyIDQ4Mi4wNDMsIDgzLjUxOCA0NTIuNzQ1LCA4NC40MDYgNDQyIEMgODUuNDgyIDQyOC45NzYsIDg5LjY0MCA0MDguNjQ0LCA5Mi4zMDEgNDAzLjM5NCBDIDkzLjY3NCA0MDAuNjg0LCA5NS4yOTQgMzk2LjYyMywgOTUuOTAwIDM5NC4zNzAgQyA5Ni41MDcgMzkyLjExOCwgOTguMDMyIDM4OC43NTAsIDk5LjI4OCAzODYuODg3IEMgMTAwLjU0NSAzODUuMDI0LCAxMDIuNzUwIDM4MS4zODUsIDEwNC4xODkgMzc4LjgwMCBDIDExMy43MTUgMzYxLjY3NiwgMTMyLjc1NSAzNDQuNDIyLCAxNTMuNTAwIDMzNC4xMTEgQyAxNzEuMzU5IDMyNS4yMzUsIDE4My4zNjMgMzIxLjc2MiwgMTk5IDMyMC45NDcgQyAyMDcuMTQ3IDMyMC41MjIsIDIxMy45MDggMzE5LjY1MywgMjE2LjA1MCAzMTguNzU2IEMgMjIwLjU5MSAzMTYuODU0LCAyMjkuNzI3IDMwNi42NDEsIDIzMS4wMDYgMzAyLjAzNyBDIDIzNC40OTEgMjg5LjQ5NSwgMjI4LjI0MSAyNzYuMDExLCAyMTYuMzMxIDI3MC4zNzcgQyAyMTMuMzg2IDI2OC45ODQsIDIwOS4zNDUgMjY2LjMwNSwgMjA3LjM1MCAyNjQuNDIzIEwgMjAzLjcyMyAyNjEuMDAzIDIwNC4zOTcgMjU0LjI1MiBDIDIwNS42NDkgMjQxLjcxNiwgMjA5LjI2MSAyMjQuNTMwLCAyMTEuNjQ0IDIxOS43NzEgQyAyMTIuOTQ2IDIxNy4xNzAsIDIxNC45MjYgMjEyLjU5OSwgMjE2LjA0NCAyMDkuNjEyIEMgMjE3LjE2MSAyMDYuNjI2LCAyMTguNzY2IDIwMy42MDksIDIxOS42MTEgMjAyLjkwOCBDIDIyMC40NTUgMjAyLjIwNywgMjIxLjk4NiAxOTkuOTg3LCAyMjMuMDEzIDE5Ny45NzUgQyAyMjguNDA5IDE4Ny4zOTgsIDI1MS4zMDggMTY2LjcyMSwgMjY0IDE2MC45NjYgQyAyNjYuNDc1IDE1OS44NDQsIDI3MS4wNDMgMTU3LjU4NiwgMjc0LjE1MSAxNTUuOTQ5IEMgMjgyLjkxMSAxNTEuMzM2LCAzMDUuOTI4IDE0Ny42NDAsIDMyMC4zOTMgMTQ4LjUyMiBDIDMzMC4zMzcgMTQ5LjEyOSwgMzMxLjgxNyAxNDguOTgzLCAzMzcuMzcwIDE0Ni44NDQgQyAzNDUuMTU2IDE0My44NDQsIDM1MS42MTEgMTM3LjY3NywgMzUyLjU1NCAxMzIuMzM4IEMgMzUzLjQwNiAxMjcuNTEwLCAzNjEuODM1IDExMC4zMDMsIDM2Ni45NzkgMTAyLjg4NyBDIDM3MS4zMzcgOTYuNjA2LCAzODcuMjE3IDgwLCAzODguODY2IDgwIEMgMzg5LjQ1MSA4MCwgMzkxLjUxOSA3OC42MDUsIDM5My40NjAgNzYuOTAxIEMgMzk1LjQwMSA3NS4xOTYsIDQwMC40ODAgNzIuNDUyLCA0MDQuNzQ1IDcwLjgwMiBDIDQwOS4wMTAgNjkuMTUzLCA0MTQuMzAwIDY3LjA4MSwgNDE2LjUwMCA2Ni4xOTkgQyA0MTkuNTI2IDY0Ljk4NiwgNDI0LjE1MyA2NC41ODQsIDQzNS41MDAgNjQuNTQ4IEwgNDUwLjUwMCA2NC41MDAgNDU5IDY4LjQ4OCBDIDQ3MC42ODUgNzMuOTcwLCA0NzcuMDU2IDgwLjEwOSwgNDgyLjM2MCA5MC45OTkgTCA0ODYuNTAwIDk5LjUwMCA0ODcgMjc5IEMgNDg3LjI3NSAzNzcuNzI1LCA0ODcuODYwIDQ1OS4yMjEsIDQ4OC4zMDEgNDYwLjEwMyBDIDQ4OC43NDEgNDYwLjk4NSwgNDkxLjU2MiA0NjMuODMwLCA0OTQuNTY5IDQ2Ni40MjcgQyA1MDcuMDgxIDQ3Ny4yMjksIDUyOS41NDAgNDczLjgwMiwgNTM2LjY4OCA0NjAgQyA1MzkuMzA5IDQ1NC45MzgsIDU0MC4wNzQgMTAyLjYxMiwgNTM3LjQ5OCA4NyBDIDUzMy41NTYgNjMuMTE2LCA1MTQuNTEyIDM3LjU5MiwgNDkxLjIwMSAyNC45NTEgQyA0ODguNjE1IDIzLjU0OSwgNDg0LjQ3NSAyMS4yMzksIDQ4MiAxOS44MTcgQyA0NzIuOTU1IDE0LjYyMiwgNDQ0LjA5MyA4LjE2NywgNDM0LjUwMCA5LjE5NCBDIDQzMy45NTAgOS4yNTMsIDQyOS40NTAgOS42MjcsIDQyNC41MDAgMTAuMDI1IE0gNjU3LjUwMCAxMC42NjUgQyA2NDAuMTc2IDE1LjA4MSwgNjIwLjg4NCAyMy4xMDUsIDYxMi45NDIgMjkuMTk2IEMgNjAwLjkyNCAzOC40MTUsIDU4NC4wNzIgNTYuMTAxLCA1ODQuMDE3IDU5LjU1NCBDIDU4NC4wMDggNjAuMTM0LCA1ODIuNTgxIDYyLjgzNCwgNTgwLjg0NyA2NS41NTQgQyA1NzguNzE1IDY4LjkwMCwgNTc2Ljc5MCA3NC4yNjgsIDU3NC44OTggODIuMTQ0IEwgNTcyLjEwMSA5My43ODggNTcxLjg4MyAxODkuNjQ0IEwgNTcxLjY2NSAyODUuNTAwIDU3NC4wODMgMjkwLjM2MCBDIDU3Ny45NTEgMjk4LjEzOCwgNTg0LjYxNyAzMDEsIDU5OC44NjIgMzAxIEMgNjA5LjU4MSAzMDEsIDYwOS44NjkgMzAwLjkzOSwgNjE0LjU3MCAyOTcuNzAwIEMgNjI0LjQzMyAyOTAuOTAzLCA2MjMuNDMxIDMwMi4wMTIsIDYyNCAxOTMuMTc3IEwgNjI0LjUwMCA5Ny41MDAgNjI4LjY3NSA5MC41MDAgQyA2MzYuMzU2IDc3LjYyMiwgNjQ5LjcyNiA2Ny45MjgsIDY2My45NzkgNjQuOTAwIEMgNjcxLjY2NCA2My4yNjcsIDY4OC4wODggNjQuMjY3LCA2OTUgNjYuNzg4IEMgNzA3LjkyOCA3MS41MDMsIDcxMi45MzggNzMuNjMxLCA3MTQuNjY0IDc1LjE0MCBDIDcxNS42NzQgNzYuMDIzLCA3MTguNTI1IDc3Ljk5MiwgNzIxIDc5LjUxNCBDIDcyNy4wNzUgODMuMjUzLCA3NDEuMzcxIDk4LjIyMywgNzQ0Ljk5MSAxMDQuNjM4IEMgNzQ2LjYwNCAxMDcuNDk2LCA3NDguMzc5IDExMC4xMTYsIDc0OC45MzUgMTEwLjQ2MCBDIDc0OS40OTEgMTEwLjgwMywgNzUwLjgzMCAxMTMuOTQ5LCA3NTEuOTEyIDExNy40NTAgQyA3NTYuMzU2IDEzMS44NDAsIDc2My44MjUgMTQyLjQxOSwgNzcwLjIzNSAxNDMuNDA3IEMgNzcyLjAzMSAxNDMuNjgzLCA3NzkuNTc1IDE0NC4xMDQsIDc4NyAxNDQuMzQyIEMgNzk4LjYwOCAxNDQuNzE0LCA4MDEuNDgxIDE0NS4xNTIsIDgwNy41MDAgMTQ3LjQ2MyBDIDgyMC41NjggMTUyLjQ4MSwgODM0Ljg0OCAxNDguNzI4LCA4MzkuNzAyIDEzOSBDIDg0MS45MjkgMTM0LjUzNSwgODQxLjkyMSAxMTQuMTExLCA4MzkuNjg5IDEwOC44NDkgQyA4MzcuNDE4IDEwMy40OTMsIDgyNC4yOTMgOTcuMzExLCA4MTIuNTAwIDk2LjA0MiBMIDgwMy41MDAgOTUuMDc0IDc5OS4yNzMgOTAuMjg3IEMgNzk2Ljk0NyA4Ny42NTQsIDc5My44NzIgODMuMDI1LCA3OTIuNDM4IDgwIEMgNzkxLjAwNCA3Ni45NzUsIDc4OC44MjYgNzMuMzc1LCA3ODcuNTk3IDcyIEMgNzg2LjM2OSA3MC42MjUsIDc4NC42NjcgNjguMzcwLCA3ODMuODE1IDY2Ljk4OCBDIDc3OS4xNDMgNTkuNDEzLCA3NTcuNTkyIDM4Ljk2OSwgNzQ4LjY0MyAzMy42MjIgQyA3NDYuOTE0IDMyLjU5MCwgNzQzLjI0MSAzMC4yNDQsIDc0MC40ODAgMjguNDA5IEMgNzM3LjcyMCAyNi41NzUsIDczMy41MjggMjQuMzkyLCA3MzEuMTY0IDIzLjU1OCBDIDcyOC44MDEgMjIuNzI0LCA3MjUuNjQxIDIxLjE2OCwgNzI0LjE0MSAyMC4xMDAgQyA3MjIuNjQwIDE5LjAzMiwgNzE1LjU4MyAxNi40NTYsIDcwOC40NTcgMTQuMzc1IEMgNjk1LjgwOCAxMC42ODEsIDY5NS4wNzMgMTAuNTg2LCA2NzcuNTAwIDEwLjM3MyBDIDY2Ny42MDAgMTAuMjUzLCA2NTguNjAwIDEwLjM4NCwgNjU3LjUwMCAxMC42NjUgTSAxMDE3LjQyNyAzNjguMDM4IEMgMTAxNi4zMjggMzY4LjQ0NCwgMTAxMy4zMzEgMzcxLjMyNCwgMTAxMC43NjggMzc0LjQzOCBDIDEwMDUuMTg2IDM4MS4yMTksIDEwMDQuMjAxIDM4NS43MjUsIDEwMDUuOTk0IDM5Ni4yNzQgQyAxMDA3LjcxMyA0MDYuMzg2LCAxMDA4LjUyNCA0NjMuNjEzLCAxMDA3LjA4MSA0NzIuOTE2IEMgMTAwNS41NTUgNDgyLjc1MSwgOTk5LjA0NCA1MDEuNzMyLCA5OTMuODA0IDUxMS42MjQgQyA5ODcuMTQzIDUyNC4xOTgsIDk4MS45MDAgNTMxLjAxNywgOTcxLjIzNiA1NDAuOTc4IEMgOTYxLjg0NyA1NDkuNzQ4LCA5NTguNDg3IDU1Mi4xMjIsIDk0NS45NDIgNTU4Ljg1MyBDIDkzNy4zNjQgNTYzLjQ1NSwgOTI5LjgzMCA1NzIuODkwLCA5MjguNTQ3IDU4MC42MzcgQyA5MjYuNDM2IDU5My4zODksIDk0MC42NjkgNjA4LCA5NTUuMjAxIDYwOCBDIDk2MS43OTkgNjA4LCA5NjQuMTYzIDYwNy4wNTgsIDk3My43MDggNjAwLjYyMiBDIDk4Ny4yMjkgNTkxLjUwNiwgOTkwLjEwNSA1OTUuNjc0LCA5OTMuNDY1IDYyOS4yNTUgQyA5OTUuNTM3IDY0OS45NTUsIDk5Mi45NjkgNjczLjMxNCwgOTg3LjE0NCA2ODYuNzU5IEMgOTg1LjUzOCA2OTAuNDY2LCA5ODMuODg4IDY5NC42MjUsIDk4My40NzcgNjk2IEMgOTgzLjA2NyA2OTcuMzc1LCA5ODEuNTAxIDcwMC4zMDAsIDk3OS45OTggNzAyLjUwMCBDIDk3OC40OTUgNzA0LjcwMCwgOTc2LjA1NCA3MDguNTI1LCA5NzQuNTcyIDcxMSBDIDk2NC43NTYgNzI3LjQwMSwgOTQ3LjE4NiA3NDQuNTQ5LCA5MzIuNTg2IDc1MS45NzggQyA5MjkuMzMzIDc1My42MzMsIDkyNS45NDkgNzU1LjY0MSwgOTI1LjA2NiA3NTYuNDQwIEMgOTIzLjU1MCA3NTcuODEyLCA5MDYuNTk5IDc2My45ODksIDg5OSA3NjUuOTM4IEMgODkxLjUxMCA3NjcuODYwLCA4NzIuMDQ2IDc2OC45NTAsIDg2My43NjQgNzY3LjkxMSBDIDg1MS4wNTEgNzY2LjMxNywgODQ3LjAyNiA3NjcuMzU3LCA4MzguNjUyIDc3NC40MDEgQyA4MzAuNzExIDc4MS4wODAsIDgzMC42MTggNzgxLjQzMSwgODI5Ljg3OCA4MDcuNTAwIEMgODI5LjUxOSA4MjAuMTUwLCA4MjguNzIwIDgzMi4wNzUsIDgyOC4xMDIgODM0IEMgODI3LjQ4NCA4MzUuOTI1LCA4MjYuMDY5IDg0Mi45MDAsIDgyNC45NTggODQ5LjUwMCBDIDgyMy42NzAgODU3LjE1MiwgODIyLjAwOCA4NjMuMzEyLCA4MjAuMzcyIDg2Ni41MDAgQyA4MTguOTYxIDg2OS4yNTAsIDgxNi45MzggODc0LjI5MywgODE1Ljg3NiA4NzcuNzA4IEMgODE0LjgxNCA4ODEuMTIyLCA4MTMuNDk3IDg4NC4xOTMsIDgxMi45NDggODg0LjUzMiBDIDgxMi4zOTkgODg0Ljg3MSwgODEwLjM5OCA4ODguMjMyLCA4MDguNTAwIDg5MiBDIDgwNi42MDIgODk1Ljc2OCwgODA0LjYxNiA4OTkuMTE5LCA4MDQuMDg2IDg5OS40NDcgQyA4MDMuNTU2IDg5OS43NzQsIDgwMS43MTggOTAyLjQ5NywgODAwLjAwMSA5MDUuNDk4IEMgNzk2LjAxMiA5MTIuNDcwLCA3NzguMDE5IDkzMC41ODIsIDc2OC45NTQgOTM2Ljc1MSBDIDc1OC45MTMgOTQzLjU4MywgNzQxLjgwOSA5NTIuOTY5LCA3MzkuMzYyIDk1Mi45OTAgQyA3MzguNzM3IDk1Mi45OTYsIDczNS4zNjIgOTU0LjMyMCwgNzMxLjg2MiA5NTUuOTM0IEMgNzE5Ljc4OCA5NjEuNTAzLCA2OTIuNjYwIDk2My42MzksIDY3NC40MTQgOTYwLjQ1NyBDIDY0OC4zMDEgOTU1LjkwMywgNjI3LjIzNyA5MzUuNzQwLCA2MjQuOTg0IDkxMy4xMzkgQyA2MjMuODc3IDkwMi4wMzIsIDYyMi44ODkgOTAwLjAxMSwgNjE1LjkyNSA4OTQuNjAzIEMgNjA1LjM0NyA4ODYuMzg5LCA1OTYuMDA0IDg4Ni4xMDgsIDU4NC4xOTMgODkzLjY1MCBDIDU3Ny42NjcgODk3LjgxNywgNTc2Ljk2OCA4OTguNjEyLCA1NzQuNTc4IDkwNC41ODIgQyA1NzEuMzA1IDkxMi43NTgsIDU3MS4zMTQgOTE3LjU5NywgNTc0LjYzMCA5MzIgQyA1ODIuMTgwIDk2NC44MDAsIDYwMi45ODMgOTg4Ljg3MSwgNjM4LjUwMCAxMDA1LjkwNiBDIDY1OS44NTYgMTAxNi4xNDksIDcwNC44MTggMTAxOC45OTcsIDczMS45MjggMTAxMS44MjQgQyA3MzYuMDkzIDEwMTAuNzIyLCA3NDIuODI0IDEwMDguOTYwLCA3NDYuODg2IDEwMDcuOTA4IEMgNzUwLjk0OCAxMDA2Ljg1NiwgNzU1Ljc0NiAxMDA1LjA4NCwgNzU3LjU0OSAxMDAzLjk2OSBDIDc1OS4zNTIgMTAwMi44NTUsIDc2My4wNTAgMTAwMS4yODMsIDc2NS43NjcgMTAwMC40NzYgQyA3NjguNDg0IDk5OS42NzAsIDc3Mi4zMTYgOTk3LjkxOCwgNzc0LjI4MyA5OTYuNTgzIEMgNzc2LjI1MCA5OTUuMjQ4LCA3ODAuMDIzIDk5My4xOTksIDc4Mi42NjcgOTkyLjAyOSBDIDc4NS4zMTEgOTkwLjg1OSwgNzg4LjM4MSA5ODkuMDc3LCA3ODkuNDg4IDk4OC4wNjggQyA3OTAuNTk0IDk4Ny4wNTksIDc5Mi45NzggOTg1LjQ4NywgNzk0Ljc4MyA5ODQuNTc0IEMgODA1LjYwOSA5NzkuMTAxLCA4MzguMTQzIDk0Ni4zNjEsIDg0Ni4zODkgOTMyLjY0MyBDIDg0Ny40MjggOTMwLjkxNCwgODQ5LjQ1MyA5MjcuNzA2LCA4NTAuODg5IDkyNS41MTMgQyA4NTIuMzI1IDkyMy4zMjAsIDg1NC45MjUgOTE4LjgyMCwgODU2LjY2NyA5MTUuNTEzIEMgODU5LjY2MCA5MDkuODMyLCA4NjEuMDg5IDkwNi45MTcsIDg2Ny45NDkgODkyLjUwMCBDIDg2OS41MTkgODg5LjIwMCwgODcxLjUzOSA4ODMuMTI1LCA4NzIuNDM4IDg3OSBDIDg3My4zMzcgODc0Ljg3NSwgODc0Ljk1MyA4NjguODAwLCA4NzYuMDI5IDg2NS41MDAgQyA4NzguNDg1IDg1Ny45NjUsIDg4MC45ODYgODQxLjU1NywgODgwLjk5NCA4MzIuOTI0IEMgODgxLjAwMSA4MjUuMTg0LCA4ODIuOTM3IDgyMi41ODUsIDg4OS41MDAgODIxLjUwMiBDIDkwMy4zNzUgODE5LjIxMiwgOTI3LjY4MiA4MTMuNjk3LCA5MzAuODAxIDgxMi4xMzIgQyA5MzIuODM2IDgxMS4xMTEsIDkzNy41MTMgODA5LjI4NSwgOTQxLjE5NiA4MDguMDc0IEMgOTQ0Ljg3OSA4MDYuODY0LCA5NDkuMDEyIDgwNC45OTIsIDk1MC4zODEgODAzLjkxNSBDIDk1MS43NTAgODAyLjgzOCwgOTU0LjY0MyA4MDEuMzMxLCA5NTYuODExIDgwMC41NjcgQyA5NTguOTc4IDc5OS44MDIsIDk2Mi44NjcgNzk3LjU2MiwgOTY1LjQ1MiA3OTUuNTg4IEMgOTY4LjAzOCA3OTMuNjE1LCA5NzAuNTc3IDc5MiwgOTcxLjA5NiA3OTIgQyA5NzIuNDY2IDc5MiwgOTg4LjI5MSA3NzcuOTYwLCA5OTYuODk5IDc2OS4xMDkgQyAxMDA3LjQwNyA3NTguMzAyLCAxMDIzLjk5OSA3MzYuNDk0LCAxMDI0LjAwMSA3MzMuNDg3IEMgMTAyNC4wMDEgNzMyLjk0NCwgMTAyNS44MDEgNzI5LjU3NSwgMTAyOCA3MjYgQyAxMDMwLjE5OSA3MjIuNDI1LCAxMDMxLjk5OSA3MTguODI1LCAxMDMyIDcxOCBDIDEwMzIuMDAxIDcxNy4xNzUsIDEwMzMuNDAzIDcxMy41NzUsIDEwMzUuMTE2IDcxMCBDIDEwNDcuNjg4IDY4My43NTgsIDEwNTEuODA5IDYyOS4yNzAsIDEwNDMuNDE0IDYwMC4zMDAgQyAxMDQyLjA5MCA1OTUuNzMzLCAxMDQwLjUzMSA1ODkuODU5LCAxMDM5Ljk0OCA1ODcuMjQ4IEMgMTAzOS4zNjUgNTg0LjYzNywgMTAzNy4zMzkgNTc5LjI3MywgMTAzNS40NDQgNTc1LjMyOCBDIDEwMzMuNTUwIDU3MS4zODQsIDEwMzEuOTk4IDU2Ny41NTksIDEwMzEuOTk2IDU2Ni44MjggQyAxMDMxLjk5MyA1NjYuMDk4LCAxMDMwLjY0NSA1NjMuNDc1LCAxMDI5IDU2MSBDIDEwMjUuMTg1IDU1NS4yNjIsIDEwMjUuMjMxIDU1NC4wNzMsIDEwMjkuNjE0IDU0NSBDIDEwMzEuNjA2IDU0MC44NzUsIDEwMzQuNTIxIDUzNC44MDAsIDEwMzYuMDkyIDUzMS41MDAgQyAxMDM4Ljc2OCA1MjUuODgwLCAxMDQyLjM0MyA1MTQuNDA4LCAxMDQ1Ljc1NCA1MDAuNTAwIEMgMTA0OS43MTUgNDg0LjM1NCwgMTA0OC4xNTAgNDI1Ljc4MywgMTA0My40NTkgNDE0LjU1NiBDIDEwNDIuNjM5IDQxMi41OTQsIDEwNDEuMjcxIDQwNy45NTQsIDEwNDAuNDE3IDQwNC4yNDUgQyAxMDM5LjU2NCA0MDAuNTM1LCAxMDM3LjgwMCAzOTUuNjcxLCAxMDM2LjQ5OSAzOTMuNDM1IEMgMTAzNS4xOTcgMzkxLjE5OSwgMTAzMy4yODAgMzg3LjE0OSwgMTAzMi4yMzggMzg0LjQzNSBDIDEwMjkuNjQ4IDM3Ny42ODksIDEwMjMuNTA1IDM2OC4zNjUsIDEwMjEuMjY1IDM2Ny43ODAgQyAxMDIwLjI1MyAzNjcuNTE1LCAxMDE4LjUyNiAzNjcuNjMxLCAxMDE3LjQyNyAzNjguMDM4IE0gMjA4LjUwMCA0MDYuMjIyIEMgMTk3Ljc1MCA0MTAuMDMzLCAxODguMzgwIDQyNi44MzMsIDE5MC44NTYgNDM3Ljg1NiBDIDE5MS44MDYgNDQyLjA4MiwgMTk3LjQyMSA0NTEuMTY4LCAyMDEuMzgxIDQ1NC44ODcgQyAyMDQuNDE0IDQ1Ny43MzYsIDIxNy4yOTAgNDYzLCAyMjEuMjIzIDQ2MyBDIDIzMC42MDQgNDYzLCAyNDYuMzA3IDQ1MC43NjAsIDI0OC44OTggNDQxLjQyOCBDIDI1MS42NTMgNDMxLjUwNSwgMjQ5Ljk1NiA0MjQuNjMwLCAyNDIuNDYxIDQxNS4zNTAgQyAyMzUuMTcxIDQwNi4zMjQsIDIzMi4zOTQgNDA0Ljk5NiwgMjIxIDQwNS4wODQgQyAyMTUuNzc1IDQwNS4xMjUsIDIxMC4xNTAgNDA1LjYzNywgMjA4LjUwMCA0MDYuMjIyIE0gMzk0LjUwMCA1MTYuODY5IEMgMzg3LjY0MyA1MjAuMTQ3LCAzODUuODcxIDUyMS45MDUsIDM4MC4wODggNTMxLjE2NyBDIDM3NC42MTQgNTM5LjkzNSwgMzczLjg0MSA1NDUuNzg2LCAzNzcuNDAzIDU1MS41MDAgQyAzNzguNzc0IDU1My43MDAsIDM4MC44MDkgNTU3LjE0OSwgMzgxLjkyNCA1NTkuMTY0IEMgMzkwLjkxNSA1NzUuNDA0LCA0MTYuMzU4IDU3Ny43MzcsIDQyNy4xMDUgNTYzLjMwNiBDIDQzOC42MDkgNTQ3Ljg2MSwgNDM4Ljg0MCA1MzYuODY3LCA0MjcuOTAxIDUyNS40NzUgQyA0MTcuMzcyIDUxNC41MTEsIDQwNS43MTggNTExLjUwOCwgMzk0LjUwMCA1MTYuODY5IE0gMjMwLjg0MSA2MjAuMzM3IEMgMjExLjI0OSA2MjQuNzE2LCAyMDIuNTcwIDY0Ny4xNjIsIDIxMy41NzYgNjY0Ljk5MiBDIDIxNy4zMDQgNjcxLjAzMiwgMjE3LjYxMyA2NzEuMjcwLCAyMzIgNjc5LjIwOCBDIDIzOS42NDAgNjgzLjQyMywgMjUyLjE0MSA2NzguNTUwLCAyNjEuMDAxIDY2Ny45MDMgQyAyNjYuNDgyIDY2MS4zMTcsIDI2Ny41MTAgNjU4LjAwNiwgMjY3LjMzMiA2NDcuNTAwIEMgMjY3LjE4MyA2MzguNjU1LCAyNjUuNDc4IDYzNC44MDgsIDI1OC44MjAgNjI4LjI5NSBDIDI1MC41ODcgNjIwLjI0MCwgMjQyLjA4OSA2MTcuODIzLCAyMzAuODQxIDYyMC4zMzciLz4KPHBhdGggZmlsbD0iIzhmZjdmZiIgZD0iTSAyMDguNTAwIDQwNi4yMjIgQyAxOTcuNzUwIDQxMC4wMzMsIDE4OC4zODAgNDI2LjgzMywgMTkwLjg1NiA0MzcuODU2IEMgMTkxLjgwNiA0NDIuMDgyLCAxOTcuNDIxIDQ1MS4xNjgsIDIwMS4zODEgNDU0Ljg4NyBDIDIwNC40MTQgNDU3LjczNiwgMjE3LjI5MCA0NjMsIDIyMS4yMjMgNDYzIEMgMjMwLjYwNCA0NjMsIDI0Ni4zMDcgNDUwLjc2MCwgMjQ4Ljg5OCA0NDEuNDI4IEMgMjUxLjY1MyA0MzEuNTA1LCAyNDkuOTU2IDQyNC42MzAsIDI0Mi40NjEgNDE1LjM1MCBDIDIzNS4xNzEgNDA2LjMyNCwgMjMyLjM5NCA0MDQuOTk2LCAyMjEgNDA1LjA4NCBDIDIxNS43NzUgNDA1LjEyNSwgMjEwLjE1MCA0MDUuNjM3LCAyMDguNTAwIDQwNi4yMjIgTSAzOTQuNTAwIDUxNi44NjkgQyAzODcuNjQzIDUyMC4xNDcsIDM4NS44NzEgNTIxLjkwNSwgMzgwLjA4OCA1MzEuMTY3IEMgMzc0LjYxNCA1MzkuOTM1LCAzNzMuODQxIDU0NS43ODYsIDM3Ny40MDMgNTUxLjUwMCBDIDM3OC43NzQgNTUzLjcwMCwgMzgwLjgwOSA1NTcuMTQ5LCAzODEuOTI0IDU1OS4xNjQgQyAzOTAuOTE1IDU3NS40MDQsIDQxNi4zNTggNTc3LjczNywgNDI3LjEwNSA1NjMuMzA2IEMgNDM4LjYwOSA1NDcuODYxLCA0MzguODQwIDUzNi44NjcsIDQyNy45MDEgNTI1LjQ3NSBDIDQxNy4zNzIgNTE0LjUxMSwgNDA1LjcxOCA1MTEuNTA4LCAzOTQuNTAwIDUxNi44NjkgTSAyMzAuODQxIDYyMC4zMzcgQyAyMTEuMjQ5IDYyNC43MTYsIDIwMi41NzAgNjQ3LjE2MiwgMjEzLjU3NiA2NjQuOTkyIEMgMjE3LjMwNCA2NzEuMDMyLCAyMTcuNjEzIDY3MS4yNzAsIDIzMiA2NzkuMjA4IEMgMjM5LjY0MCA2ODMuNDIzLCAyNTIuMTQxIDY3OC41NTAsIDI2MS4wMDEgNjY3LjkwMyBDIDI2Ni40ODIgNjYxLjMxNywgMjY3LjUxMCA2NTguMDA2LCAyNjcuMzMyIDY0Ny41MDAgQyAyNjcuMTgzIDYzOC42NTUsIDI2NS40NzggNjM0LjgwOCwgMjU4LjgyMCA2MjguMjk1IEMgMjUwLjU4NyA2MjAuMjQwLCAyNDIuMDg5IDYxNy44MjMsIDIzMC44NDEgNjIwLjMzNyIvPgo8cGF0aCBmaWxsPSIjM2NjNGZmIiBkPSJNIDY0My4wOTEgMzM3LjA5MCBDIDY0MC43MTMgMzM4LjA0MSwgNjM5LjUzMCAzMzkuMjE3LCA2MzYuMjY3IDM0My44NzggQyA2MzQuNzg0IDM0NS45OTYsIDYzNC42MjMgMzQ5LjkyMCwgNjM0Ljc5NCAzNzkuNjkyIEMgNjM1LjAzNyA0MjIuMTI4LCA2MzUuMjUzIDQyMS41NjIsIDYxOS4yNjQgNDIwLjM1MiBDIDYwNy4wMzYgNDE5LjQyNywgNTk5LjMxNiA0MjIuNjIyLCA1OTUuMzc3IDQzMC4yMzggQyA1OTMuMTc0IDQzNC40OTgsIDU5My4yMTQgNzIzLjE4MywgNTk1LjQxOCA3MjYuNDYyIEMgNTk2LjE3MSA3MjcuNTgzLCA1OTguMjM5IDcyOS45NjIsIDYwMC4wMTIgNzMxLjc1MCBMIDYwMy4yMzcgNzM1IDYxNi40ODQgNzM1IEMgNjI4LjM3MSA3MzUsIDYzMC4wMDEgNzM1LjIxMywgNjMyLjM2NSA3MzcuMDczIEwgNjM1IDczOS4xNDUgNjM1IDc5My4yMDUgQyA2MzUgODQ2LjU5MSwgNjM1LjAyNiA4NDcuMzA3LCA2MzcuMTI3IDg1MC43MDUgQyA2NDEuNzA1IDg1OC4xMTIsIDY1My4xOTggODU3LjYwOCwgNjU1Ljg5MiA4NDkuODgxIEMgNjU2LjY1MCA4NDcuNzA1LCA2NTcgODI5LjU2NSwgNjU3IDc5Mi40MDcgTCA2NTcgNzM4LjExMyA2NTkuMjIzIDczNi41NTcgQyA2NjAuOTYyIDczNS4zMzgsIDY2NC4zMTkgNzM1LCA2NzQuNjc1IDczNSBDIDY4OS43NDYgNzM1LCA2OTEuNzYwIDczNC4zOTYsIDY5NS43MTQgNzI4LjY5MiBMIDY5OC41MDAgNzI0LjY3MSA2OTguNzYwIDU4MC4yMzAgQyA2OTguOTMxIDQ4NC45ODIsIDY5OC42NzUgNDM0LjUwNiwgNjk4LjAwNyA0MzIuMDI1IEMgNjk1LjY3MyA0MjMuMzU4LCA2ODguOTU2IDQyMC4yMzIsIDY3Mi42MjQgNDIwLjIxNCBDIDY2Mi45ODQgNDIwLjIwMiwgNjU5Ljg0NCA0MTkuMTQ5LCA2NTguMTEwIDQxNS4zNDMgQyA2NTcuMzY3IDQxMy43MTEsIDY1NyA0MDEuODE3LCA2NTcgMzc5LjM1NCBDIDY1NyAzNDEuNzM0LCA2NTYuNzMyIDM0MC4wMzksIDY1MC4zNjAgMzM3LjM3NyBDIDY0Ni41ODIgMzM1Ljc5OSwgNjQ2LjM0NCAzMzUuNzg5LCA2NDMuMDkxIDMzNy4wOTAiLz4KPHBhdGggZmlsbD0iIzJmZGNjOCIgZD0iTSA3ODIuMTQzIDE4Ni41MzMgQyA3NzcuMjQzIDE5MC42NTYsIDc3Ny4xMTkgMTkyLjEwMCwgNzc3LjEzNSAyNDQuODk3IEMgNzc3LjE1MyAzMDQuMjY5LCA3NzguODM4IDI5OC41MDMsIDc2MS41NzMgMjk4LjE0NCBDIDc0OC43MjggMjk3Ljg3NywgNzQ2Ljk3OSAyOTguNDE0LCA3NDAuNzUwIDMwNC41NDAgTCA3MzcgMzA4LjIyOCA3MzYuOTQxIDMyMS44NjQgQyA3MzYuNTU4IDQxMC41MzEsIDczNy4yNzQgNjAwLjU5MCwgNzM3Ljk5OCA2MDIuNDk1IEMgNzQwLjEzOCA2MDguMTIzLCA3NDYuMjQwIDYxMC40ODksIDc1OC45MzcgNjEwLjYxMiBDIDc3NC40MDMgNjEwLjc2MywgNzczLjcxNSA2MTAuNjM2LCA3NzUuNzI3IDYxMy43MDcgQyA3NzcuMzcwIDYxNi4yMTYsIDc3Ny41MDAgNjIwLjQ2MSwgNzc3LjUwMCA2NzEuNzc4IEwgNzc3LjUwMCA3MjcuMTQzIDc4MS43MTEgNzMxLjA3MSBDIDc4Ni4zNjAgNzM1LjQwOCwgNzg5Ljk5NyA3MzYuMDg3LCA3OTQuOTI2IDczMy41MzggQyA4MDAuODQ3IDczMC40NzYsIDgwMC45NDEgNzI5LjQ5NywgODAwLjkwOCA2NzEuMzA3IEMgODAwLjg5MiA2NDIuMjYzLCA4MDAuOTA2IDYxNy43MTIsIDgwMC45MzkgNjE2Ljc1MCBDIDgwMS4wOTkgNjEyLjE1MywgODA0LjI4NCA2MTEsIDgxNi44MjIgNjExIEMgODMxLjI3NiA2MTEsIDgzNy4xOTcgNjA5LjM2MSwgODM5Ljc3OCA2MDQuNjQ3IEMgODQxLjM4NSA2MDEuNzEwLCA4NDEuNTAwIDU5MS43MjgsIDg0MS41MDAgNDU0LjgyMyBMIDg0MS41MDAgMzA4LjE0NiA4MzkuNDIxIDMwNS4zNjIgQyA4MzUuMTk5IDI5OS43MDgsIDgyOS45ODggMjk4LCA4MTYuOTU0IDI5OCBDIDgwNy4wOTggMjk4LCA4MDQuODYyIDI5Ny43MDksIDgwMi45NzQgMjk2LjE4MCBMIDgwMC43MjYgMjk0LjM2MCA4MDAuOTI1IDI0NC4yOTUgQyA4MDEuMTM5IDE5MC4yNzksIDgwMS4wNTEgMTg5LjI1MCwgNzk1Ljg4MyAxODUuNjMxIEMgNzkyLjI2MSAxODMuMDk0LCA3ODUuNzIwIDE4My41MjMsIDc4Mi4xNDMgMTg2LjUzMyIvPgo8cGF0aCBmaWxsPSIjMmZlMzlhIiBkPSJNIDkyNS44NzMgNTAuNjg0IEMgOTE5Ljg1MSA1NC40MjEsIDkyMCA1Mi45MjQsIDkyMCAxMDkuNzk0IEMgOTIwIDE1OS40ODEsIDkxOS45MTYgMTYxLjg4MywgOTE4LjA4OSAxNjQuMTM5IEMgOTE2LjI4OCAxNjYuMzY0LCA5MTUuMzgwIDE2Ni41MjksIDkwMi4yOTMgMTY3IEMgODg2LjM0MiAxNjcuNTc0LCA4ODMuOTgxIDE2OC40OTgsIDg4MC45OTEgMTc1LjMzNCBDIDg3OC40NjcgMTgxLjEwOCwgODc3LjkyNyA0NTUuNDk2LCA4ODAuNDI4IDQ2MS40ODMgQyA4ODMuMzU4IDQ2OC40OTUsIDg4OS4xOTEgNDcwLjg1MiwgOTAzLjcxNiA0NzAuODk0IEMgOTIxLjE4MSA0NzAuOTQ0LCA5MTkuODMyIDQ2OC43MDksIDkyMC4yMDAgNDk4LjE5NCBMIDkyMC41MDAgNTIyLjE2NyA5MjMuNzY2IDUyNS4wODQgQyA5MzAuMDI2IDUzMC42NzQsIDkzOS4zMTQgNTI4LjI4MCwgOTQyLjY4NyA1MjAuMjA2IEMgOTQzLjgxOSA1MTcuNDk2LCA5NDQuMDgxIDUxMi4yMzQsIDk0My44OTYgNDk1Ljg5MCBDIDk0My41OTYgNDY5LjM0NywgOTQyLjUyOCA0NzEsIDk1OS45ODQgNDcxIEMgOTcyLjU0OSA0NzEsIDk3Mi42OTggNDcwLjk3MywgOTc3LjQ1NCA0NjcuODIzIEMgOTg1LjUzMiA0NjIuNDcyLCA5ODQuOTQyIDQ3NC43MDUsIDk4NC43MDkgMzE3LjM4MSBDIDk4NC41MTUgMTg2LjcxNSwgOTg0LjM3NiAxNzYuMjc0LCA5ODIuNzk0IDE3My4zODUgQyA5NzkuOTcwIDE2OC4yMjgsIDk3NS45MTUgMTY3LCA5NjEuNzEwIDE2NyBDIDk1MC45MDYgMTY3LCA5NDguOTAzIDE2Ni43NDIsIDk0Ni44NjEgMTY1LjA4OSBMIDk0NC41MDAgMTYzLjE3OCA5NDQgMTA5LjUxMSBMIDk0My41MDAgNTUuODQ1IDkzOS43NjUgNTIuNDIyIEMgOTM1LjUwNCA0OC41MTgsIDkzMC4zOTMgNDcuODc5LCA5MjUuODczIDUwLjY4NCIvPgo8L2c+Cjwvc3ZnPg==";
+  const logoImg = new Image();
+  let logoReady = false, logoBox = null, logoPts = [];
+  logoImg.onload = () => { logoReady = true; layoutLogo(); };
+  logoImg.src = LOGO_SRC;
+  function layoutLogo() {
+    if (!logoReady || !W) return;
+    const w = Math.min(W * 0.38, H * 0.5), h = w * (1152 / 1184); // includes room for the glow
+    logoBox = { x: (W - w) / 2, y: H * 0.43 - h / 2, w, h };
+    const oc = document.createElement("canvas"), k = 2;
+    oc.width = Math.ceil(w / k); oc.height = Math.ceil(h / k);
+    const o = oc.getContext("2d"); o.drawImage(logoImg, 0, 0, oc.width, oc.height);
+    const d = o.getImageData(0, 0, oc.width, oc.height).data, pts = [];
+    for (let y = 0; y < oc.height; y += 1) for (let x = 0; x < oc.width; x += 1) {
+      const q = (y * oc.width + x) * 4;
+      if (d[q + 3] > 200) pts.push([logoBox.x + x * k, logoBox.y + y * k, d[q], d[q + 1], d[q + 2]]);
+    }
+    for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
+    logoPts = pts;
+    const t = $("title"); t.style.top = `${logoBox.y + h * 0.95}px`;
+  }
+
+  // ---------- camera: zoomed into a patch of cortex while it forms, then out to the whole brain
+  const FOCUS = { x: 340, y: 260 };
+  function camera(p) {
+    const base = Math.min(W / 1060, H / 800) * 0.92;
+    const z = ease(clamp((p - 0.54) / 0.3));
+    const s = base * lerp(small ? 3.2 : 4.2, 1, z);
+    const c = { x: lerp(FOCUS.x, BC.x + 10, z), y: lerp(FOCUS.y, BC.y + 20, z) };
+    return { s, toX: x => (x - c.x) * s + W / 2, toY: y => (y - c.y) * s + H / 2 };
+  }
+
+  // ---------- pulses along synapses (price flashes travelling through the network)
+  const pulses = [];
+  function spawnPulse() {
+    const e = edges[Math.floor(rnd() * edges.length)]; if (!e) return;
+    pulses.push({ e, t: 0, speed: 0.6 + rnd() * 1.2, up: rnd() > 0.45, flip: rnd() > 0.5 });
+  }
+
+  // ---------- frame
+  let last = performance.now(), shown = reduced ? 1 : 0;
+  // plays by itself: the whole story in DURATION seconds (no scrolling needed), then a replay button
+  const DURATION = 22;
+  let startAt = null;
+  function progress(now) {
+    if (reduced) return 1;
+    if (startAt === null) startAt = now;
+    return clamp((now - startAt) / 1000 / DURATION);
+  }
+  // the page below: nav once past the animation, sections fade in as they arrive
+  const nav = $("nav"), hl = $("hero-login"), onScroll = () => { const past = scrollY > innerHeight * 0.6; nav.classList.toggle("show", past); hl.style.opacity = past ? 0 : 1; hl.style.pointerEvents = past ? "none" : "auto"; };
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 }) : null;
+  document.querySelectorAll(".reveal").forEach(el => (io ? io.observe(el) : el.classList.add("in")));
+  $("replay").addEventListener("click", () => { startAt = null; shown = 0; sampledAt = null; $("replay").classList.remove("show"); });
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (scrollY > innerHeight * 1.05) { requestAnimationFrame(frame); return; } // off screen: don't draw
+    // where we are in the story (0 = tickers, 1 = the name)
+    shown = progress(now);
+    const p = shown;
+    if (p >= 1 && !reduced) $("replay").classList.add("show");
+    if (p >= 0.95) $("down").classList.add("show");
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = "#04060c"; ctx.fillRect(0, 0, W, H);
+
+    // tickers scroll, then slow to a stop as they start to dissolve
+    const slow = 1 - clamp((p - 0.08) / 0.12);
+    rows.forEach(r => (r.off += r.dir * r.speed * dt * slow));
+
+    const textA = 1 - clamp((p - 0.2) / 0.08);
+    if (p >= 0.19 && sampledAt === null) { sampleParticles(); sampledAt = p; }
+    if (p < 0.17) sampledAt = null; // replayed: tickers move again; sample afresh next time
+
+    if (textA > 0) {
+      // a soft vignette so the board looks lit
+      const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+      g.addColorStop(0, "rgba(90,184,255,0.06)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      drawRows(ctx, textA);
+    }
+
+    const cam = camera(p);
+    const morph = clamp((p - 0.2) / 0.3);
+    const netA = clamp((p - 0.38) / 0.12) * (1 - clamp((p - 0.8) / 0.07));
+
+    // synapses
+    if (netA > 0) {
+      ctx.lineWidth = Math.max(0.5, cam.s * 0.6);
+      ctx.strokeStyle = `rgba(90,184,255,${0.16 * netA})`;
+      ctx.beginPath();
+      for (const [i, j] of edges) { const a = nodes[i], b = nodes[j]; ctx.moveTo(cam.toX(a.x), cam.toY(a.y)); ctx.lineTo(cam.toX(b.x), cam.toY(b.y)); }
+      ctx.stroke();
+      if (!reduced) for (let k = 0; k < (small ? 2 : 5); k++) if (rnd() < 0.8 * netA) spawnPulse();
+    }
+
+    // particles: ticker glyphs -> neuron clusters
+    if (particles.length && p >= 0.19) {
+      ctx.globalCompositeOperation = "lighter";
+      const sz = Math.max(1.1, Math.min(2.4, cam.s * 1.4));
+      const toLogo = logoPts.length ? ease(clamp((p - 0.8) / 0.08)) : 0, logoA = clamp((p - 0.89) / 0.05);
+      let li = 0;
+      for (const q of particles) {
+        const t = ease(clamp((morph - q.delay) / (1 - 0.25)));
+        const tx = cam.toX(q.n.x + q.jx * (1 - 0.5 * netA)), ty = cam.toY(q.n.y + q.jy * (1 - 0.5 * netA));
+        let x = lerp(q.sx, tx, t), y = lerp(q.sy, ty, t);
+        let r = lerp(q.r, 90, t), gg = lerp(q.g, 184, t), b = lerp(q.b, 255, t);
+        let a = Math.min(1, 0.55 + 0.45 * (1 - t) + q.n.glow * 0.6) * (t < 1 ? 1 : 0.7);
+        if (toLogo > 0) {
+          const L = logoPts[li++ % logoPts.length], u = clamp(toLogo * 1.15 - q.delay * 0.6);
+          const e = ease(u);
+          x = lerp(x, L[0], e); y = lerp(y, L[1], e);
+          r = lerp(r, L[2], e); gg = lerp(gg, L[3], e); b = lerp(b, L[4], e);
+          a = lerp(a, 1, e) * (1 - logoA);
+        }
+        if (a <= 0.01) continue;
+        ctx.fillStyle = `rgba(${r | 0},${gg | 0},${b | 0},${a})`;
+        ctx.fillRect(x, y, sz, sz);
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // nodes light up as pulses arrive
+    if (netA > 0) {
+      ctx.globalCompositeOperation = "lighter";
+      for (let k = pulses.length - 1; k >= 0; k--) {
+        const u = pulses[k]; u.t += dt * u.speed;
+        const [i, j] = u.flip ? [u.e[1], u.e[0]] : u.e, a = nodes[i], b = nodes[j];
+        if (u.t >= 1) { b.glow = 1; b.hue = u.up ? 1 : -1; pulses.splice(k, 1); continue; }
+        const x = cam.toX(lerp(a.x, b.x, u.t)), y = cam.toY(lerp(a.y, b.y, u.t));
+        ctx.fillStyle = u.up ? `rgba(47,227,154,${0.9 * netA})` : `rgba(255,84,112,${0.9 * netA})`;
+        ctx.beginPath(); ctx.arc(x, y, Math.max(1.4, cam.s * 1.6), 0, Math.PI * 2); ctx.fill();
+      }
+      for (const n of nodes) {
+        if (n.glow <= 0.02) continue;
+        const x = cam.toX(n.x), y = cam.toY(n.y), rad = Math.max(3, cam.s * 9) * n.glow;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+        g.addColorStop(0, n.hue > 0 ? `rgba(47,227,154,${0.8 * n.glow * netA})` : `rgba(255,84,112,${0.8 * n.glow * netA})`);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+        n.glow -= dt * 1.4;
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // the whole brain comes into view: a faint cortex outline
+    const outA = clamp((p - 0.74) / 0.06) * (1 - clamp((p - 0.8) / 0.06));
+    if (outA > 0) {
+      ctx.strokeStyle = `rgba(90,184,255,${0.38 * outA})`; ctx.lineWidth = 1.3;
+      const path = pts => { ctx.beginPath(); pts.forEach(([x, y], k) => (k ? ctx.lineTo(cam.toX(x), cam.toY(y)) : ctx.moveTo(cam.toX(x), cam.toY(y)))); ctx.stroke(); };
+      path(outline);
+      ctx.beginPath(); ctx.ellipse(cam.toX(765), cam.toY(545), 118 * cam.s, 66 * cam.s, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = `rgba(90,184,255,${0.12 * outA})`;
+      SULCI.forEach(path); CEREBELLUM_FOLDS.forEach(path);
+    }
+
+    // the logo itself, crisp, as the particles settle into it
+    const logoA2 = clamp((p - 0.89) / 0.05);
+    if (logoReady && logoBox && logoA2 > 0) {
+      ctx.save(); ctx.globalAlpha = logoA2;
+      const breathe = 1 + 0.012 * Math.sin(now / 900) * logoA2;
+      const w = logoBox.w * breathe, h = logoBox.h * breathe;
+      ctx.drawImage(logoImg, logoBox.x - (w - logoBox.w) / 2, logoBox.y - (h - logoBox.h) / 2, w, h);
+      ctx.restore();
+    }
+
+    // captions
+    $("c2").style.opacity = band(p, 0.36, 0.42, 0.52, 0.58);
+    $("c3").style.opacity = band(p, 0.64, 0.7, 0.78, 0.82);
+    $("title").style.opacity = clamp((p - 0.92) / 0.06);
+
+    requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    DPR = Math.min(2, devicePixelRatio || 1);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    sampledAt = null;
+    layoutLogo();
+  }
+  addEventListener("resize", resize);
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { resize(); requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
