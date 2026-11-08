@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cerebro — scroll animation prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #04060c; --ink: #e8eef8; --dim: #7f8aa3; --green: #2fe39a; --red: #ff5470; --cyan: #5ab8ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  #track { height: 650vh; position: relative; }
+  #stage { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .caption { position: absolute; left: 50%; transform: translate(-50%, 0); text-align: center; pointer-events: none; opacity: 0; width: min(90vw, 760px); }
+  .caption h2 { font-weight: 300; font-size: clamp(22px, 3.6vw, 42px); letter-spacing: -0.01em; text-shadow: 0 2px 24px #000; }
+  .caption p { margin-top: 10px; color: var(--dim); font-size: clamp(13px, 1.4vw, 17px); text-shadow: 0 2px 16px #000; }
+  #c1 { bottom: 12vh; } #c2 { bottom: 12vh; } #c3 { bottom: 12vh; }
+  #title { top: 50%; transform: translate(-50%, -50%); }
+  #title h1 { font-weight: 700; font-size: clamp(44px, 9vw, 120px); letter-spacing: -0.04em; line-height: 1; }
+  #title h1 span { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #title .tag { margin-top: 14px; font-size: clamp(14px, 2vw, 22px); letter-spacing: 0.35em; text-transform: uppercase; color: var(--dim); font-weight: 500; }
+  #hint { position: absolute; bottom: 4vh; left: 50%; transform: translateX(-50%); color: var(--dim); font: 500 12px "JetBrains Mono", monospace; letter-spacing: 0.2em; text-transform: uppercase; animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translate(-50%, 6px); } }
+  #note { position: fixed; top: 10px; right: 12px; font: 500 11px "JetBrains Mono", monospace; color: #4b556b; z-index: 5; }
+  @media (prefers-reduced-motion: reduce) { #hint { animation: none; } }
+</style>
+</head>
+<body>
+<div id="note">prototype · tickers are made up</div>
+<div id="track">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div class="caption" id="c1"><h2>Every tick. Every market.</h2><p>Thousands of prices, every minute.</p></div>
+    <div class="caption" id="c2"><h2>Signals, not noise.</h2><p>Each price becomes a connection.</p></div>
+    <div class="caption" id="c3"><h2>One mind watching them all.</h2></div>
+    <div class="caption" id="title"><h1><span>Cerebro</span></h1><div class="tag">Trading Intelligence</div></div>
+    <div id="hint">scroll</div>
+  </div>
+</div>
+<script>
+(() => {
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const small = matchMedia("(max-width: 700px)").matches;
+  const $ = id => document.getElementById(id);
+  let W = 0, H = 0, DPR = 1;
+
+  // ---------- helpers
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const band = (p, a, b, c, d) => clamp((p - a) / (b - a)) * (1 - clamp((p - c) / (d - c))); // fade in a..b, out c..d
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+  // ---------- made-up ticker rows (generic: invented symbols plus FX pairs)
+  const SYMS = ["GBP/USD", "EUR/USD", "USD/JPY", "AUD/USD", "USD/CAD", "EUR/GBP", "EUR/JPY", "NVX", "QRTZ", "HLX", "ORBT", "KNTC", "VALE", "SYNA", "AXON", "PLSR", "LMNA", "CRDX", "FLUX", "NRVE", "MTRX", "DLTA"];
+  function tickerText(r) {
+    let s = "";
+    for (let k = 0; k < 14; k++) {
+      const sym = SYMS[Math.floor(rnd() * SYMS.length)], up = rnd() > 0.45;
+      const px = sym.includes("/") ? (0.6 + rnd() * 1.2).toFixed(5) : (10 + rnd() * 900).toFixed(2);
+      const chg = `${up ? "▲" : "▼"}${(rnd() * 2.4).toFixed(2)}%   `;
+      s += `${sym} ${px} ${chg}`;
+      r.parts.push({ sym, px, up, chg });
+    }
+    return s;
+  }
+  const ROWS = small ? 7 : 9;
+  const rows = Array.from({ length: ROWS }, (_, i) => { const r = { parts: [], dir: i % 2 ? 1 : -1, speed: 40 + rnd() * 60, off: rnd() * 1000 }; r.text = tickerText(r); return r; });
+
+  // ---------- brain (world coordinates, side view facing left, roughly 1000 x 760)
+  const BC = { x: 500, y: 380 };
+  // a hand-drawn cerebrum silhouette (frontal lobe left, temporal lobe dipping below, occipital right), smoothed
+  const CTRL = [[150,430],[98,340],[108,240],[165,158],[265,100],[395,72],[530,74],[655,98],[765,148],[852,228],[892,326],[872,418],[808,468],[712,482],[628,500],[556,540],[456,566],[352,552],[282,512],[252,462],[205,446]];
+  function catmull(pts, per = 14) {
+    const out = [], n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      for (let k = 0; k < per; k++) {
+        const t = k / per, t2 = t * t, t3 = t2 * t;
+        out.push([0, 1].map(d => 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * t + (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * t2 + (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * t3)));
+      }
+    }
+    return out;
+  }
+  // gyri: small bumps along the outline (pushed out along the normal)
+  const smooth = catmull(CTRL);
+  let arc = 0;
+  const outline = smooth.map((pt, i) => {
+    const nx = smooth[(i + 1) % smooth.length], pv = smooth[(i - 1 + smooth.length) % smooth.length];
+    arc += Math.hypot(pt[0] - pv[0], pt[1] - pv[1]);
+    const tx = nx[0] - pv[0], ty = nx[1] - pv[1], L = Math.hypot(tx, ty) || 1;
+    const bump = 7 * Math.sin(arc / 15) + 3 * Math.sin(arc / 6.5);
+    return [pt[0] + (ty / L) * bump, pt[1] - (tx / L) * bump];
+  });
+  outline.push(outline[0]);
+  function inPoly(x, y, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+  const inCerebrum = (x, y) => inPoly(x, y, outline);
+  const inCerebellum = (x, y) => ((x - 765) / 118) ** 2 + ((y - 545) / 66) ** 2 <= 1;
+  const inStem = (x, y) => ((x - 635) / 40) ** 2 + ((y - 640) / 110) ** 2 <= 1 && y > 520;
+  const inBrain = (x, y) => inCerebrum(x, y) || inCerebellum(x, y) || inStem(x, y);
+  // a few sulci (folds) drawn faintly in the final view: lateral, central, and some smaller ones
+  const SULCI = [
+    [[252,462],[330,420],[420,392],[500,372],[575,350]],
+    [[540,80],[520,160],[500,230],[470,300],[455,370]],
+    [[420,80],[400,150],[380,220],[350,290]],
+    [[660,110],[640,190],[625,270],[640,350],[690,410]],
+    [[180,200],[240,230],[300,250],[340,300]],
+    [[760,170],[740,250],[770,330],[820,380]],
+    [[330,470],[400,500],[480,505],[550,480]],
+  ].map(c => catmull(c.concat([c[c.length - 1]]), 8).slice(0, (c.length - 1) * 8));
+  const CEREBELLUM_FOLDS = [-36, -18, 0, 18, 36].map(dy => { const pts = []; for (let k = 0; k <= 40; k++) { const u = -1 + (2 * k) / 40, x = 765 + u * 118 * Math.sqrt(Math.max(0, 1 - (dy / 66) ** 2)) * 0.92; pts.push([x, 545 + dy + 4 * Math.sin(k * 0.9)]); } return pts; });
+
+  const NODES = small ? 460 : 820;
+  const nodes = [];
+  while (nodes.length < NODES) {
+    const x = 60 + rnd() * 880, y = 50 + rnd() * 720;
+    if (!inBrain(x, y)) continue;
+    // denser near the surface, like cortex
+    const edge = !inBrain(x + 26, y) || !inBrain(x - 26, y) || !inBrain(x, y + 26) || !inBrain(x, y - 26);
+    if (!edge && rnd() < 0.4) continue;
+    nodes.push({ x, y, glow: 0, hue: 0 });
+  }
+  // a few nearest neighbours each = the synapses
+  const edges = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const d = nodes.map((n, j) => [j, (n.x - nodes[i].x) ** 2 + (n.y - nodes[i].y) ** 2]).filter(([j]) => j !== i).sort((a, b) => a[1] - b[1]).slice(0, 4);
+    for (const [j, dd] of d) if (j > i && dd < 70 * 70) edges.push([i, j]);
+  }
+
+  // ---------- particles: sampled from the ticker text when it dissolves
+  const MAXP = small ? 1600 : 3600;
+  let particles = [], sampledAt = null;
+  const textCanvas = document.createElement("canvas"), tctx = textCanvas.getContext("2d");
+
+  function rowLayout(i) { const gap = H / (ROWS + 1); return { y: gap * (i + 1), size: Math.max(13, Math.min(30, gap * 0.42)) }; }
+  function drawRows(c, alpha, scaleDown = 1) {
+    c.save(); c.globalAlpha = alpha; c.textBaseline = "middle";
+    rows.forEach((r, i) => {
+      const { y, size } = rowLayout(i);
+      c.font = `700 ${size / scaleDown}px "JetBrains Mono", monospace`;
+      const full = c.measureText(r.text).width;
+      let x = -((r.off % full) + full) % full;
+      for (; x < W / scaleDown; x += full) {
+        let cx = x;
+        for (const p of r.parts) {
+          const a = `${p.sym} `, b = `${p.px} `;
+          c.fillStyle = "#e8eef8"; c.fillText(a, cx, y / scaleDown); cx += c.measureText(a).width;
+          c.fillStyle = "#9aa6bf"; c.fillText(b, cx, y / scaleDown); cx += c.measureText(b).width;
+          c.fillStyle = p.up ? "#2fe39a" : "#ff5470";
+          c.fillText(p.chg, cx, y / scaleDown); cx += c.measureText(p.chg).width;
+        }
+      }
+      // separators like an exchange board
+      c.fillStyle = "rgba(90,184,255,0.10)"; c.fillRect(0, (y + size * 0.9) / scaleDown, W / scaleDown, 1);
+    });
+    c.restore();
+  }
+
+  function sampleParticles() {
+    const k = 2; // sample at half resolution
+    textCanvas.width = Math.ceil(W / k); textCanvas.height = Math.ceil(H / k);
+    tctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+    drawRows(tctx, 1, k);
+    const img = tctx.getImageData(0, 0, textCanvas.width, textCanvas.height).data, pts = [];
+    for (let y = 0; y < textCanvas.height; y += 2) for (let x = 0; x < textCanvas.width; x += 2) {
+      const o = (y * textCanvas.width + x) * 4;
+      if (img[o + 3] > 120) pts.push([x * k, y * k, img[o], img[o + 1], img[o + 2]]);
+    }
+    for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
+    particles = pts.slice(0, MAXP).map(([x, y, r, g, b], i) => {
+      const n = nodes[i % nodes.length];
+      const a = rnd() * Math.PI * 2, rad = rnd() * 9;
+      return { sx: x, sy: y, r, g, b, n, jx: Math.cos(a) * rad, jy: Math.sin(a) * rad, delay: rnd() * 0.25 };
+    });
+  }
+
+  // ---------- camera: zoomed into a patch of cortex while it forms, then out to the whole brain
+  const FOCUS = { x: 340, y: 260 };
+  function camera(p) {
+    const base = Math.min(W / 1060, H / 800) * 0.92;
+    const z = ease(clamp((p - 0.54) / 0.3));
+    const s = base * lerp(small ? 3.2 : 4.2, 1, z);
+    const c = { x: lerp(FOCUS.x, BC.x + 10, z), y: lerp(FOCUS.y, BC.y + 20, z) };
+    return { s, toX: x => (x - c.x) * s + W / 2, toY: y => (y - c.y) * s + H / 2 };
+  }
+
+  // ---------- pulses along synapses (price flashes travelling through the network)
+  const pulses = [];
+  function spawnPulse() {
+    const e = edges[Math.floor(rnd() * edges.length)]; if (!e) return;
+    pulses.push({ e, t: 0, speed: 0.6 + rnd() * 1.2, up: rnd() > 0.45, flip: rnd() > 0.5 });
+  }
+
+  // ---------- frame
+  let last = performance.now();
+  function progress() {
+    if (reduced) return 1;
+    const t = $("track"), max = t.offsetHeight - innerHeight;
+    return clamp(-t.getBoundingClientRect().top / max);
+  }
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const p = progress();
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = "#04060c"; ctx.fillRect(0, 0, W, H);
+
+    // tickers scroll, then slow to a stop as they start to dissolve
+    const slow = 1 - clamp((p - 0.08) / 0.12);
+    rows.forEach(r => (r.off += r.dir * r.speed * dt * slow));
+
+    const textA = 1 - clamp((p - 0.2) / 0.08);
+    if (p >= 0.19 && sampledAt === null) { sampleParticles(); sampledAt = p; }
+    if (p < 0.17) sampledAt = null; // scrolled back: tickers move again; sample afresh next time
+
+    if (textA > 0) {
+      // a soft vignette so the board looks lit
+      const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+      g.addColorStop(0, "rgba(90,184,255,0.06)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      drawRows(ctx, textA);
+    }
+
+    const cam = camera(p);
+    const morph = clamp((p - 0.2) / 0.3);
+    const netA = clamp((p - 0.38) / 0.12);
+
+    // synapses
+    if (netA > 0) {
+      ctx.lineWidth = Math.max(0.5, cam.s * 0.6);
+      ctx.strokeStyle = `rgba(90,184,255,${0.16 * netA})`;
+      ctx.beginPath();
+      for (const [i, j] of edges) { const a = nodes[i], b = nodes[j]; ctx.moveTo(cam.toX(a.x), cam.toY(a.y)); ctx.lineTo(cam.toX(b.x), cam.toY(b.y)); }
+      ctx.stroke();
+      if (!reduced) for (let k = 0; k < (small ? 2 : 5); k++) if (rnd() < 0.8 * netA) spawnPulse();
+    }
+
+    // particles: ticker glyphs -> neuron clusters
+    if (particles.length && p >= 0.19) {
+      ctx.globalCompositeOperation = "lighter";
+      const sz = Math.max(1.1, Math.min(2.4, cam.s * 1.4));
+      for (const q of particles) {
+        const t = ease(clamp((morph - q.delay) / (1 - 0.25)));
+        const tx = cam.toX(q.n.x + q.jx * (1 - 0.5 * netA)), ty = cam.toY(q.n.y + q.jy * (1 - 0.5 * netA));
+        const x = lerp(q.sx, tx, t), y = lerp(q.sy, ty, t);
+        const r = lerp(q.r, 90, t), gg = lerp(q.g, 184, t), b = lerp(q.b, 255, t);
+        const a = 0.55 + 0.45 * (1 - t) + q.n.glow * 0.6;
+        ctx.fillStyle = `rgba(${r | 0},${gg | 0},${b | 0},${Math.min(1, a) * (t < 1 ? 1 : 0.7)})`;
+        ctx.fillRect(x, y, sz, sz);
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // nodes light up as pulses arrive
+    if (netA > 0) {
+      ctx.globalCompositeOperation = "lighter";
+      for (let k = pulses.length - 1; k >= 0; k--) {
+        const u = pulses[k]; u.t += dt * u.speed;
+        const [i, j] = u.flip ? [u.e[1], u.e[0]] : u.e, a = nodes[i], b = nodes[j];
+        if (u.t >= 1) { b.glow = 1; b.hue = u.up ? 1 : -1; pulses.splice(k, 1); continue; }
+        const x = cam.toX(lerp(a.x, b.x, u.t)), y = cam.toY(lerp(a.y, b.y, u.t));
+        ctx.fillStyle = u.up ? `rgba(47,227,154,${0.9 * netA})` : `rgba(255,84,112,${0.9 * netA})`;
+        ctx.beginPath(); ctx.arc(x, y, Math.max(1.4, cam.s * 1.6), 0, Math.PI * 2); ctx.fill();
+      }
+      for (const n of nodes) {
+        if (n.glow <= 0.02) continue;
+        const x = cam.toX(n.x), y = cam.toY(n.y), rad = Math.max(3, cam.s * 9) * n.glow;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+        g.addColorStop(0, n.hue > 0 ? `rgba(47,227,154,${0.8 * n.glow * netA})` : `rgba(255,84,112,${0.8 * n.glow * netA})`);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+        n.glow -= dt * 1.4;
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // the whole brain comes into view: a faint cortex outline
+    const outA = clamp((p - 0.74) / 0.1);
+    if (outA > 0) {
+      ctx.strokeStyle = `rgba(90,184,255,${0.38 * outA})`; ctx.lineWidth = 1.3;
+      const path = pts => { ctx.beginPath(); pts.forEach(([x, y], k) => (k ? ctx.lineTo(cam.toX(x), cam.toY(y)) : ctx.moveTo(cam.toX(x), cam.toY(y)))); ctx.stroke(); };
+      path(outline);
+      ctx.beginPath(); ctx.ellipse(cam.toX(765), cam.toY(545), 118 * cam.s, 66 * cam.s, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = `rgba(90,184,255,${0.12 * outA})`;
+      SULCI.forEach(path); CEREBELLUM_FOLDS.forEach(path);
+      // the brain dims a little behind the name
+      ctx.fillStyle = `rgba(4,6,12,${0.3 * clamp((p - 0.9) / 0.07)})`; ctx.fillRect(0, 0, W, H);
+    }
+
+    // captions
+    $("hint").style.opacity = 1 - clamp(p / 0.04);
+    $("c1").style.opacity = band(p, 0.02, 0.06, 0.14, 0.2);
+    $("c2").style.opacity = band(p, 0.36, 0.42, 0.52, 0.58);
+    $("c3").style.opacity = band(p, 0.64, 0.7, 0.82, 0.88);
+    $("title").style.opacity = clamp((p - 0.9) / 0.07);
+
+    requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    DPR = Math.min(2, devicePixelRatio || 1);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    sampledAt = null;
+  }
+  addEventListener("resize", resize);
+  if (reduced) { $("track").style.height = "100vh"; }
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { resize(); requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
