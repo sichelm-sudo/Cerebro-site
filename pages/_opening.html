@@ -1,0 +1,28 @@
+<section id="opening" aria-label="Cerebro - Trading Intelligence">
+  <iframe id="opening-frame" title="Cerebro intro animation, ending on the Cerebro logo and the words Trading Intelligence" tabindex="-1"></iframe>
+  <button id="opening-skip" type="button">Skip intro →</button>
+  <a class="opening-login" href="{{APP}}">Sign In</a>
+  <a id="opening-down" href="#main" aria-label="Scroll down to the site">Scroll<span aria-hidden="true">↓</span></a>
+</section>
+<script>
+  // opens on the animation the first time; Skip (or any later visit) shows the logo and tagline straight away.
+  // Visitors scroll down to the site from there.
+  (function () {
+    var seen = false, reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    try { seen = localStorage.getItem("cerebroIntroSeen") === "1"; } catch (e) {}
+    var frame = document.getElementById("opening-frame"), skip = document.getElementById("opening-skip"), down = document.getElementById("opening-down");
+    var ended = seen || reduced;
+    frame.src = ended ? "intro.html?end" : "intro.html";
+    function finish() {
+      try { localStorage.setItem("cerebroIntroSeen", "1"); } catch (e) {}
+      skip.classList.add("gone"); down.classList.add("show");
+    }
+    if (ended) finish();
+    skip.addEventListener("click", function () { frame.contentWindow && frame.contentWindow.postMessage("cerebro-intro-skip", "*"); finish(); });
+    addEventListener("message", function (e) { if (e.data === "cerebro-intro-done") finish(); });
+    // stop drawing the animation while it is scrolled out of view
+    if ("IntersectionObserver" in window) new IntersectionObserver(function (es) {
+      frame.contentWindow && frame.contentWindow.postMessage(es[0].isIntersecting ? "cerebro-intro-resume" : "cerebro-intro-pause", "*");
+    }).observe(document.getElementById("opening"));
+  })();
+</script>

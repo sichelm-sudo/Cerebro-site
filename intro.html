@@ -300,27 +300,33 @@
   let last = performance.now(), shown = reduced ? 1 : 0;
   // plays by itself: the whole story in DURATION seconds (no scrolling needed), then a replay button
   const DURATION = 22;
-  let startAt = null;
+  let startAt = null, jumpToEnd = /[?&]end/.test(location.search), paused = false;
   function progress(now) {
     if (reduced) return 1;
+    if (jumpToEnd) { startAt = now - DURATION * 1000; jumpToEnd = false; }
     if (startAt === null) startAt = now;
     return clamp((now - startAt) / 1000 / DURATION);
   }
-  // the page below: nav once past the animation, sections fade in as they arrive
-  // shown inside the homepage (an overlay): tell it when the animation has finished
+  // the homepage can skip to the logo, and pause drawing while the visitor is further down the page
+  addEventListener("message", e => {
+    if (e.data === "cerebro-intro-skip") { jumpToEnd = true; sampledAt = null; }
+    if (e.data === "cerebro-intro-pause") paused = true;
+    if (e.data === "cerebro-intro-resume") paused = false;
+  });
+  // shown at the top of the homepage: tell it when the animation has reached the logo
   const embedded = window.top !== window.self;
   let told = false;
   if (embedded) { $("down").style.display = "none"; $("replay").style.display = "none"; }
   $("replay").addEventListener("click", () => { startAt = null; shown = 0; sampledAt = null; $("replay").classList.remove("show"); });
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (scrollY > innerHeight * 1.05) { requestAnimationFrame(frame); return; } // off screen: don't draw
+    if (paused || scrollY > innerHeight * 1.05) { requestAnimationFrame(frame); return; } // off screen: don't draw
     // where we are in the story (0 = tickers, 1 = the name)
     shown = progress(now);
     const p = shown;
     if (p >= 1 && !reduced) $("replay").classList.add("show");
     if (p >= 0.95) $("down").classList.add("show");
-    if (embedded && p >= 1 && !told) { told = true; setTimeout(() => parent.postMessage("cerebro-intro-done", "*"), 1800); }
+    if (embedded && p >= 1 && !told) { told = true; parent.postMessage("cerebro-intro-done", "*"); }
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = "#04060c"; ctx.fillRect(0, 0, W, H);
 

@@ -69,11 +69,12 @@ FOOTER = f"""</main>
 </html>
 """
 
-for src in sorted((ROOT / "pages").glob("*.html")):
+for src in sorted(p for p in (ROOT / "pages").glob("*.html") if not p.name.startswith("_")):
     text = src.read_text()
     m = re.match(r"<!--\s*title:(.*?)\n\s*description:(.*?)-->\n", text, re.S)
     title, desc = (m.group(1).strip(), m.group(2).strip()) if m else ("Cerebro", "")
     body = text[m.end():] if m else text
-    out = head(title, desc, src.name) + header(src.name) + body.replace("{{APP}}", APP).replace("{{BETA_EMAIL}}", BETA_EMAIL) + FOOTER
+    opening = (ROOT / "pages" / "_opening.html").read_text() if src.name == "index.html" else ""
+    out = (head(title, desc, src.name) + opening + header(src.name) + body + FOOTER).replace("{{APP}}", APP).replace("{{BETA_EMAIL}}", BETA_EMAIL)
     (ROOT / src.name).write_text(out)
     print("built", src.name)

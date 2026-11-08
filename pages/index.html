@@ -1,36 +1,5 @@
 <!-- title: Cerebro — Trading Intelligence | Build, test and automate systematic trading strategies
 description: Cerebro brings strategy development, rigorous backtesting, automated execution and portfolio management together in one platform for systematic traders. Now in private beta. -->
-<script>
-  // the opening animation plays once per visitor; Skip, or a returning visit, goes straight to the site
-  (function () {
-    var seen = false;
-    try { seen = localStorage.getItem("cerebroIntroSeen") === "1"; } catch (e) {}
-    if (!seen && !matchMedia("(prefers-reduced-motion: reduce)").matches && !/[?&]nointro/.test(location.search)) document.documentElement.classList.add("intro-on");
-  })();
-</script>
-<div id="intro" aria-label="Cerebro intro animation">
-  <iframe id="intro-frame" title="Cerebro intro animation" tabindex="-1"></iframe>
-  <button id="intro-skip" type="button">Skip intro →</button>
-</div>
-<script>
-  (function () {
-    var root = document.documentElement;
-    if (!root.classList.contains("intro-on")) { document.getElementById("intro").remove(); return; }
-    var box = document.getElementById("intro"), frame = document.getElementById("intro-frame"), skip = document.getElementById("intro-skip");
-    frame.src = "intro.html";
-    document.body.style.overflow = "hidden";
-    function done() {
-      try { localStorage.setItem("cerebroIntroSeen", "1"); } catch (e) {}
-      box.classList.add("leaving"); document.body.style.overflow = "";
-      setTimeout(function () { box.remove(); root.classList.remove("intro-on"); }, 700);
-      var h = document.getElementById("hero-h"); if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
-    }
-    skip.addEventListener("click", done);
-    addEventListener("keydown", function (e) { if (e.key === "Escape" && document.getElementById("intro")) done(); });
-    addEventListener("message", function (e) { if (e.data === "cerebro-intro-done") done(); });
-    skip.focus();
-  })();
-</script>
 <section class="hero" aria-labelledby="hero-h">
   <canvas id="net" aria-hidden="true"></canvas>
   <div class="wrap">
