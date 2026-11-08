@@ -16,7 +16,7 @@
   .caption { position: absolute; left: 50%; transform: translate(-50%, 0); text-align: center; pointer-events: none; opacity: 0; width: min(90vw, 760px); }
   .caption h2 { font-weight: 300; font-size: clamp(22px, 3.6vw, 42px); letter-spacing: -0.01em; text-shadow: 0 2px 24px #000; }
   .caption p { margin-top: 10px; color: var(--dim); font-size: clamp(13px, 1.4vw, 17px); text-shadow: 0 2px 16px #000; }
-  #c1 { bottom: 12vh; } #c2 { bottom: 12vh; } #c3 { bottom: 12vh; }
+  #c2 { bottom: 12vh; } #c3 { bottom: 12vh; }
   #title { top: 50%; transform: translate(-50%, -50%); }
   #title h1 { font-weight: 700; font-size: clamp(44px, 9vw, 120px); letter-spacing: -0.04em; line-height: 1; }
   #title h1 span { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -32,7 +32,6 @@
 <div id="track">
   <div id="stage">
     <canvas id="cv"></canvas>
-    <div class="caption" id="c1"><h2>Every tick. Every market.</h2><p>Thousands of prices, every minute.</p></div>
     <div class="caption" id="c2"><h2>Signals, not noise.</h2><p>Each price becomes a connection.</p></div>
     <div class="caption" id="c3"><h2>One mind watching them all.</h2></div>
     <div class="caption" id="title"><h1><span>Cerebro</span></h1><div class="tag">Trading Intelligence</div></div>
@@ -202,7 +201,7 @@
   }
 
   // ---------- frame
-  let last = performance.now();
+  let last = performance.now(), shown = reduced ? 1 : 0;
   function progress() {
     if (reduced) return 1;
     const t = $("track"), max = t.offsetHeight - innerHeight;
@@ -210,7 +209,11 @@
   }
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const p = progress();
+    // ease toward the scroll position (a wheel click jumps; the animation glides)
+    const target = progress();
+    shown += (target - shown) * (1 - Math.exp(-dt * 5));
+    if (Math.abs(target - shown) < 0.0002) shown = target;
+    const p = shown;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = "#04060c"; ctx.fillRect(0, 0, W, H);
 
@@ -298,7 +301,6 @@
 
     // captions
     $("hint").style.opacity = 1 - clamp(p / 0.04);
-    $("c1").style.opacity = band(p, 0.02, 0.06, 0.14, 0.2);
     $("c2").style.opacity = band(p, 0.36, 0.42, 0.52, 0.58);
     $("c3").style.opacity = band(p, 0.64, 0.7, 0.82, 0.88);
     $("title").style.opacity = clamp((p - 0.9) / 0.07);
