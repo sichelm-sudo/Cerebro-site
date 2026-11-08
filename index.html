@@ -37,19 +37,157 @@
   #title h1 span { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   #title .tag { margin-top: 14px; font-size: clamp(14px, 2vw, 22px); letter-spacing: 0.35em; text-transform: uppercase; color: var(--dim); font-weight: 500; }
   #note { position: fixed; top: 10px; right: 12px; font: 500 11px "JetBrains Mono", monospace; color: #4b556b; z-index: 5; }
+
+  /* ---------- page content below the animation */
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  #down { position: absolute; bottom: 5vh; right: 4vw; color: var(--dim); font: 500 11px "JetBrains Mono", monospace; letter-spacing: 0.25em; text-transform: uppercase; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.8s; }
+  #down.show { opacity: 1; }
+  #down span { font-size: 16px; animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(5px); } }
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(16px, 4vw, 48px); background: rgba(4,6,12,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(90,184,255,0.10); transform: translateY(-100%); transition: transform 0.4s; }
+  #nav.show { transform: none; }
+  #nav .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; letter-spacing: -0.02em; font-size: 18px; }
+  #nav .brand img { width: 30px; }
+  #nav .links { display: flex; gap: clamp(10px, 2.2vw, 28px); align-items: center; }
+  #nav .links a { color: var(--dim); text-decoration: none; font-size: 14px; }
+  #nav .links a:hover { color: var(--ink); }
+  #nav .cta-sm { color: var(--ink) !important; border: 1px solid rgba(47,227,154,0.5); padding: 6px 14px; border-radius: 999px; }
+  @media (max-width: 760px) { #nav .links a:not(.cta-sm) { display: none; } }
+  main { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 40px); }
+  main section { padding: clamp(70px, 11vw, 130px) 0 0; }
+  .eyebrow { color: var(--green); font: 500 12px "JetBrains Mono", monospace; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 14px; }
+  main h2 { font-weight: 700; font-size: clamp(28px, 4.2vw, 48px); line-height: 1.1; letter-spacing: -0.03em; max-width: 920px; }
+  .grad { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { color: #aab4c8; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.6; max-width: 760px; margin-top: 22px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 32px; }
+  .cta { display: inline-block; padding: 14px 26px; border-radius: 999px; background: linear-gradient(90deg, #3d9be0, #16a870); color: #fff; font-weight: 600; text-decoration: none; box-shadow: 0 0 30px rgba(47,227,154,0.25); transition: transform 0.2s, box-shadow 0.2s; }
+  .cta:hover { transform: translateY(-1px); box-shadow: 0 0 44px rgba(47,227,154,0.4); }
+  .ghost { display: inline-block; padding: 14px 26px; border-radius: 999px; border: 1px solid rgba(90,184,255,0.35); color: var(--ink); text-decoration: none; }
+  .steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 44px; counter-reset: s; }
+  .steps li { padding: 26px; border-radius: 16px; background: linear-gradient(180deg, rgba(90,184,255,0.06), rgba(90,184,255,0.01)); border: 1px solid rgba(90,184,255,0.12); }
+  .steps .n { font: 700 13px "JetBrains Mono", monospace; color: var(--green); }
+  .steps h3, .card h3 { font-size: 19px; margin: 10px 0 8px; letter-spacing: -0.01em; }
+  .steps p, .card p { color: #9aa6bf; line-height: 1.6; font-size: 15px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 44px; }
+  .card { padding: 26px; border-radius: 16px; background: #0a0e18; border: 1px solid #172033; transition: border-color 0.3s, transform 0.3s; }
+  .card:hover { border-color: rgba(47,227,154,0.35); transform: translateY(-2px); }
+  .card svg { width: 34px; height: 34px; fill: none; stroke: url(#gline); stroke: var(--cyan); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(90,184,255,0.5)); }
+  .split { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(30px, 5vw, 70px); align-items: start; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+  .checks { list-style: none; display: grid; gap: 18px; }
+  .checks li { padding-left: 34px; position: relative; color: #9aa6bf; line-height: 1.6; }
+  .checks li b { color: var(--ink); }
+  .checks li::before { content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle, var(--green) 35%, rgba(47,227,154,0.15) 40%); box-shadow: 0 0 12px rgba(47,227,154,0.5); }
+  .beta { text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 40px !important; }
+  .beta-logo { width: 110px; filter: drop-shadow(0 0 30px rgba(47,227,154,0.3)); margin-bottom: 20px; }
+  .beta h2 { margin: 0 auto; }
+  .beta .lead { margin: 18px auto 30px; }
+  .mail { color: var(--dim); font: 500 13px "JetBrains Mono", monospace; margin-top: 14px; }
+  footer { max-width: 1120px; margin: 90px auto 0; padding: 30px clamp(18px, 4vw, 40px) 50px; border-top: 1px solid #172033; color: #6b7690; font-size: 13px; line-height: 1.6; }
+  .foot-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .foot-brand img { width: 34px; }
+  .foot-brand b { display: block; color: var(--ink); font-size: 15px; }
+  .foot-brand span { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; }
+  .risk { max-width: 860px; }
+  .copy { margin-top: 14px; }
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.9s ease, transform 0.9s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
 </style>
 </head>
 <body>
-<div id="note">prototype · tickers are made up</div>
-<div id="track">
+<div id="track"><a id="top"></a>
   <div id="stage">
     <canvas id="cv"></canvas>
     <div class="caption" id="c2"><h2>Signals, not noise.</h2><p>Each price becomes a connection.</p></div>
     <div class="caption" id="c3"><h2>One mind watching them all.</h2></div>
     <div class="caption" id="title"><h1><span>Cerebro</span></h1><div class="tag">Trading Intelligence</div></div>
     <button id="replay" type="button">replay</button>
+    <a id="down" href="#top-content" aria-label="Scroll down">scroll<span>↓</span></a>
   </div>
 </div>
+<nav id="nav">
+  <a href="#top" class="brand"><img src="logo-neon.svg" alt=""><span>Cerebro</span></a>
+  <div class="links"><a href="#how">How it works</a><a href="#features">Features</a><a href="#proof">Proof</a><a href="#control">Control</a><a href="#beta" class="cta-sm">Join the beta</a></div>
+</nav>
+
+<main>
+  <section class="intro reveal" id="top-content">
+    <p class="eyebrow">The operating system for systematic trading</p>
+    <h2>Most trading platforms help you place trades.<br><span class="grad">Cerebro helps you decide what deserves to be traded.</span></h2>
+    <p class="lead">Cerebro is a research lab, a trading desk and a risk manager in one. It turns trading ideas into exact, testable rules, tries hard to break them on years of market data, and only lets the survivors near your money - first on paper, then on a demo account, then live, at your pace.</p>
+    <div class="cta-row"><a href="#beta" class="cta">Join the private beta</a><a href="#how" class="ghost">See how it works</a></div>
+  </section>
+
+  <section id="how" class="reveal">
+    <p class="eyebrow">How it works</p>
+    <h2>Research. Validate. Deploy. Monitor. Adapt.</h2>
+    <ol class="steps">
+      <li><span class="n">01</span><h3>Discover</h3><p>Ideas from decades of published trading research, turned into precise, mechanical rules - every setting written down, nothing left to interpretation.</p></li>
+      <li><span class="n">02</span><h3>Validate</h3><p>Tested on years of minute-by-minute prices with realistic trading costs, then judged on data the strategy has never seen. Test the idea, then try to break it.</p></li>
+      <li><span class="n">03</span><h3>Prove</h3><p>Backtests only earn a place in the Sandbox. Paper trading forward earns trust. A demo account earns the right to go live.</p></li>
+      <li><span class="n">04</span><h3>Deploy</h3><p>When you choose to run a strategy, Cerebro trades it for you - sizing every position to the risk you set, with stops and targets in place from the first second.</p></li>
+      <li><span class="n">05</span><h3>Monitor</h3><p>Every strategy is watched against its own normal range. A losing streak doesn't always mean the edge is gone - Cerebro knows the difference.</p></li>
+      <li><span class="n">06</span><h3>Adapt</h3><p>Strategies that drift outside their range step down a tier; stronger ones step up. The portfolio keeps renewing itself, by rules - not by mood.</p></li>
+    </ol>
+  </section>
+
+  <section id="features" class="reveal">
+    <p class="eyebrow">Features</p>
+    <h2>Built to find an edge - and to protect it.</h2>
+    <div class="cards">
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/></svg><h3>Research Lab</h3><p>An AI research partner that reads a trading idea, builds it faithfully, asks its own questions, replays it and suggests variations - with every assumption labelled.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M7 15l3-4 3 2 5-7"/></svg><h3>One engine, no surprises</h3><p>The same code decides in the backtest and in live trading, and it never peeks at future prices. What you tested is what trades.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><h3>Realistic costs</h3><p>Spreads, wider late-evening spreads and stop slippage are built into every result, so an edge that only exists before costs is caught early.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><h3>Market layer</h3><p>A filter above the strategies that reads the wider market - trend and daily context - and holds back entries that fight it. It runs side by side with an unfiltered copy, so you can see exactly what it blocked and what that was worth.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><h3>Portfolio intelligence</h3><p>A profitable strategy can still be the wrong one for your portfolio. Cerebro checks correlation and currency exposure, so ten strategies aren't secretly one bet.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg><h3>Trade management</h3><p>Profit locks, trailing stops and time limits, applied exactly as the strategy was tested - checked every few minutes, recorded every time.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M4 20h16M6 16V9M10 16V5M14 16v-6M18 16V8"/></svg><h3>Dashboard</h3><p>Every strategy, every trade, in one place - with profit factor and win rate always shown next to returns, never returns alone.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6 2 2 6 3-4 4 3 3-14z"/></svg><h3>Alerts that matter</h3><p>A daily summary and instant alerts on your phone - trades opened and closed, anything blocked, and a watchdog that speaks up if anything stops.</p></div>
+      <div class="card"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg><h3>Connects to your broker</h3><p>Runs on IG, from paper trading through demo to a live account - reconciling with the broker so nothing is lost or invented across a restart.</p></div>
+    </div>
+  </section>
+
+  <section id="proof" class="reveal split">
+    <div>
+      <p class="eyebrow">Proof, not promises</p>
+      <h2>Cerebro doesn't look for reasons to approve a strategy. <span class="grad">It looks for reasons to reject it.</span></h2>
+    </div>
+    <ul class="checks">
+      <li><b>Unseen data.</b> Strategies are judged on years they were never built on, and the rules that run the portfolio are set the same way - by thousands of simulated portfolios that never see the future.</li>
+      <li><b>Normal ranges.</b> Thousands of reshuffled trade histories show what a strategy's good and bad runs normally look like, so a real problem stands out from bad luck.</li>
+      <li><b>Every number in context.</b> Results come with profit factor and win rate, after costs - never a single flattering figure.</li>
+      <li><b>Versions that can't change.</b> Every strategy version is fingerprinted and frozen, so what was tested is exactly what runs.</li>
+      <li><b>Data you can trust.</b> Price history is cross-checked between independent sources, month by month, before any test runs on it.</li>
+    </ul>
+  </section>
+
+  <section id="control" class="reveal">
+    <p class="eyebrow">You stay in control</p>
+    <h2>Your risk. Your rules. Your pace.</h2>
+    <div class="cards three">
+      <div class="card"><h3>Your limits, always</h3><p>Risk per trade, daily loss limits and maximum open positions are yours to set - and every order passes through them before it reaches the broker.</p></div>
+      <div class="card"><h3>Automatic, semi or manual</h3><p>Let Cerebro move strategies between tiers by its rules, approve each move yourself, or make every decision by hand.</p></div>
+      <div class="card"><h3>Pause any time</h3><p>Pause a strategy, a market or everything at once. Every decision and every order is written down, so you can always see why something happened.</p></div>
+    </div>
+  </section>
+
+  <section id="beta" class="reveal beta">
+    <img src="logo-neon.svg" alt="" class="beta-logo">
+    <h2>Build the evidence. <span class="grad">Trade the evidence.</span></h2>
+    <p class="lead">Cerebro is in private beta. If you trade systematically - or want to - we'd like to hear from you.</p>
+    <a class="cta" href="mailto:hello@tradecerebro.com?subject=Cerebro%20beta">Join the private beta</a>
+    <p class="mail">hello@tradecerebro.com</p>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-brand"><img src="logo-neon.svg" alt=""><div><b>Cerebro</b><span>Trading Intelligence</span></div></div>
+  <p class="risk"><b>Important:</b> Spread bets and CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. You should consider whether you understand how they work and whether you can afford to take the high risk of losing your money. Backtests and past performance are not a reliable indicator of future results. Cerebro is software that carries out your own decisions; it does not provide investment advice.</p>
+  <p class="copy">© 2026 Cerebro · tradecerebro.com</p>
+</footer>
+
 <script>
 (() => {
   const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
@@ -245,13 +383,20 @@
     if (startAt === null) startAt = now;
     return clamp((now - startAt) / 1000 / DURATION);
   }
+  // the page below: nav once past the animation, sections fade in as they arrive
+  const nav = $("nav"), onScroll = () => nav.classList.toggle("show", scrollY > innerHeight * 0.6);
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 }) : null;
+  document.querySelectorAll(".reveal").forEach(el => (io ? io.observe(el) : el.classList.add("in")));
   $("replay").addEventListener("click", () => { startAt = null; shown = 0; sampledAt = null; $("replay").classList.remove("show"); });
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (scrollY > innerHeight * 1.05) { requestAnimationFrame(frame); return; } // off screen: don't draw
     // where we are in the story (0 = tickers, 1 = the name)
     shown = progress(now);
     const p = shown;
     if (p >= 1 && !reduced) $("replay").classList.add("show");
+    if (p >= 0.95) $("down").classList.add("show");
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = "#04060c"; ctx.fillRect(0, 0, W, H);
 
